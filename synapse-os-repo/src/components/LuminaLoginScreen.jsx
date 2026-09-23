@@ -7,22 +7,35 @@ import {
   ShieldCheck, 
   ArrowRight, 
   Cpu, 
-  CheckCircle2,
-  Layers,
-  Terminal
+  CheckCircle2, 
+  Layers, 
+  Terminal,
+  Zap
 } from 'lucide-react';
+import ZkSnarkProverModal from './ZkSnarkProverModal';
 
 export default function LuminaLoginScreen({ onLogin }) {
   const [operatorKey, setOperatorKey] = useState('SOVEREIGN-OPERATOR-LUMINA-70B');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isZkModalOpen, setIsZkModalOpen] = useState(false);
+  const [zkAuthInfo, setZkAuthInfo] = useState(null);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
     setIsAuthenticating(true);
     setTimeout(() => {
       setIsAuthenticating(false);
-      onLogin();
+      onLogin(zkAuthInfo);
     }, 600);
+  };
+
+  const handleVerifiedZkLogin = (zkData) => {
+    setZkAuthInfo(zkData);
+    setIsAuthenticating(true);
+    setTimeout(() => {
+      setIsAuthenticating(false);
+      onLogin(zkData);
+    }, 400);
   };
 
   return (
@@ -59,7 +72,7 @@ export default function LuminaLoginScreen({ onLogin }) {
               <span className="text-xs font-mono text-slate-500">Sovereign Microkernel Gateway</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-mono font-semibold flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Lumina-Auth v2.4
+                Lumina-Auth v2.4 (ZK-SNARKs)
               </span>
             </div>
           </div>
@@ -70,8 +83,8 @@ export default function LuminaLoginScreen({ onLogin }) {
           <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-slate-700">
             <Lock className="w-4 h-4 text-cyan-600 shrink-0" />
             <div className="truncate">
-              <span className="text-[10px] text-slate-400 block uppercase">PQC Lattice</span>
-              <span className="font-bold text-[11px] text-slate-800">ML-KEM-768</span>
+              <span className="text-[10px] text-slate-400 block uppercase">ZK Gateway</span>
+              <span className="font-bold text-[11px] text-slate-800">Groth16 / BN254</span>
             </div>
           </div>
 
@@ -104,6 +117,17 @@ export default function LuminaLoginScreen({ onLogin }) {
               />
             </div>
           </div>
+
+          {/* Interactive ZK-SNARK Prover Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsZkModalOpen(true)}
+            className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-400 hover:text-cyan-300 font-mono font-bold text-xs border border-cyan-500/30 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer group"
+          >
+            <Cpu className="w-4 h-4 text-cyan-400 group-hover:rotate-12 transition-transform" />
+            <span>Generate Browser ZK-SNARK Proof (Circom / Groth16)</span>
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+          </button>
 
           <button
             type="submit"
@@ -139,6 +163,14 @@ export default function LuminaLoginScreen({ onLogin }) {
           </button>
         </div>
       </motion.div>
+
+      {/* ZK-SNARK Prover Modal */}
+      <ZkSnarkProverModal
+        isOpen={isZkModalOpen}
+        onClose={() => setIsZkModalOpen(false)}
+        onVerifiedLogin={handleVerifiedZkLogin}
+        defaultSecret={operatorKey}
+      />
     </div>
   );
 }

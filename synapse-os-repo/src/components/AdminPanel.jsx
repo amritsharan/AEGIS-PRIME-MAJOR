@@ -104,19 +104,25 @@ export default function AdminPanel({ onSwitchToUserUI }) {
         {/* TAB 1: ZK Algorithm & Encryption Processes */}
         {adminTab === 'encryption-zk' && (
           <div className="space-y-6">
-            {/* ZK Proof Visualizer Banner */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            {/* ZK Proof Visualizer Banner & Live Circuit Playground */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                 <div className="flex items-center gap-2">
                   <div className="p-2 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-200">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <h3 className="text-sm font-bold font-mono text-slate-900">
-                    ZERO-KNOWLEDGE (ZK) ALGORITHM PROOF GENERATOR & ENCRYPTION
-                  </h3>
+                  <div>
+                    <h3 className="text-sm font-bold font-mono text-slate-900">
+                      INTERACTIVE ZK-SNARK (GROTH16 / CIRCOM) PROOF PLAYGROUND
+                    </h3>
+                    <p className="text-[11px] font-mono text-slate-500">
+                      Poseidon hash commitment sponge with BN254 bilinear pairing verification
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold">
-                  ZK-SNARK ACTIVE
+                <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold flex items-center gap-1.5 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  PROVER ENGINE ONLINE
                 </span>
               </div>
 
@@ -124,12 +130,12 @@ export default function AdminPanel({ onSwitchToUserUI }) {
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                   <div className="text-slate-500 font-semibold">Proof Protocol:</div>
                   <div className="text-cyan-700 font-bold text-sm">{zkProof.protocol}</div>
-                  <div className="text-[10px] text-slate-400">Elliptic Curve: {zkProof.curve}</div>
+                  <div className="text-[10px] text-slate-400">Elliptic Curve: BN254 / BLS12-381</div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <div className="text-slate-500 font-semibold">Post-Quantum Encryption:</div>
-                  <div className="text-blue-700 font-bold text-sm">CRYSTALS-Kyber 1024</div>
+                  <div className="text-slate-500 font-semibold">Post-Quantum Lattice:</div>
+                  <div className="text-blue-700 font-bold text-sm">FIPS 203 ML-KEM-768</div>
                   <div className="text-[10px] text-slate-400">Tunnel: Post-Quantum Encrypted</div>
                 </div>
 
@@ -139,13 +145,61 @@ export default function AdminPanel({ onSwitchToUserUI }) {
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     PROVED & VALIDATED
                   </div>
-                  <div className="text-[10px] text-slate-400">Zero Leakage Guaranteed</div>
+                  <div className="text-[10px] text-slate-400">Zero Credential Exposure</div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-600 break-all">
-                <span className="text-amber-700 font-bold">ZK Proof Commitment Hash: </span>
-                {zkProof.hash}
+              {/* Circom & R1CS Interactive Inspector */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                <div className="p-4 rounded-2xl bg-slate-950 text-slate-200 font-mono text-xs space-y-2 border border-slate-800">
+                  <div className="text-cyan-400 font-bold flex items-center justify-between">
+                    <span>IdentityVerifier.circom</span>
+                    <span className="text-[10px] text-slate-500">384 R1CS Constraints</span>
+                  </div>
+                  <pre className="p-3 rounded-xl bg-slate-900 text-cyan-300 text-[10px] leading-relaxed overflow-x-auto max-h-48 border border-slate-800">
+{`template IdentityVerifier() {
+    signal input secretKey;
+    signal input blindingFactor;
+    signal input epochId;
+    signal output commitment;
+    signal output nullifier;
+
+    // C = Poseidon(secretKey, blindingFactor)
+    component cHasher = Poseidon(2);
+    cHasher.inputs[0] <== secretKey;
+    cHasher.inputs[1] <== blindingFactor;
+    commitment <== cHasher.out;
+
+    // N = Poseidon(secretKey, epochId)
+    component nHasher = Poseidon(2);
+    nHasher.inputs[0] <== secretKey;
+    nHasher.inputs[1] <== epochId;
+    nullifier <== nHasher.out;
+}`}
+                  </pre>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs space-y-3 border border-slate-800 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="text-amber-400 font-bold flex items-center gap-2">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Mathematical Verification Equation</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-950 text-slate-300 text-[11px] space-y-1.5 border border-slate-800">
+                      <div className="text-cyan-300 font-bold">
+                        e(π_A, π_B) = e(α, β) · e(x, γ) · e(π_C, δ)
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        Evaluates non-interactive polynomial divisibility over pairing-friendly elliptic curve without discovering witness <i>w</i>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-950 text-[11px] font-mono text-slate-400 border border-slate-800 truncate">
+                    <span className="text-emerald-400 font-bold">Nullifier Root: </span>
+                    0x7a8f9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a
+                  </div>
+                </div>
               </div>
             </div>
 
