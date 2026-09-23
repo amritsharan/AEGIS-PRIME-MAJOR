@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --color-canvas: #ffffff;
+  --color-surface: #f4f6fb;
+  --color-surface-2: #eef1f7;
+  --color-hairline: #e2e6ef;
+  --color-stroke: #cbd2e0;
+  --color-ink: #111827;
+  --color-slate: #6b7280;
+  --color-mono-ink: #374151;
+
+  --color-emerald: #059669;
+  --color-emerald-soft: #ecfdf5;
+  --color-indigo: #4f46e5;
+  --color-indigo-soft: #eef2ff;
+  --color-coral: #f43f5e;
+  --color-coral-soft: #fff1f2;
+  --color-ruby: #dc2626;
+  --color-ruby-soft: #fef2f2;
+  --color-cyan: #0891b2;
+  --color-cyan-soft: #ecfeff;
+  --color-amber: #d97706;
+  --color-amber-soft: #fffbeb;
+  --color-purple: #7c3aed;
+  --color-purple-soft: #f5f3ff;
+  --color-orange: #ea580c;
+  --color-orange-soft: #fff7ed;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Liquid blob animations ─────────────────────────────── */
+@keyframes morph {
+  0%,
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+  50% {
+    border-radius: 50% 60% 30% 40% / 40% 50% 60% 50%;
+  }
+  75% {
+    border-radius: 60% 30% 40% 70% / 60% 40% 50% 40%;
+  }
+}
+@keyframes drift-1 {
+  0%,
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  33% {
+    transform: translate(4%, -6%) scale(1.06);
+  }
+  66% {
+    transform: translate(-5%, 4%) scale(0.94);
+  }
+}
+@keyframes drift-2 {
+  0%,
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  33% {
+    transform: translate(-6%, 5%) scale(0.96);
+  }
+  66% {
+    transform: translate(5%, -4%) scale(1.04);
+  }
+}
+@keyframes drift-3 {
+  0%,
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  50% {
+    transform: translate(3%, 6%) scale(1.08);
+  }
+}
+
+.blob {
+  animation:
+    morph 14s ease-in-out infinite,
+    drift-1 22s ease-in-out infinite;
+}
+.blob-2 {
+  animation:
+    morph 18s ease-in-out infinite reverse,
+    drift-2 28s ease-in-out infinite;
+}
+.blob-3 {
+  animation:
+    morph 22s ease-in-out infinite,
+    drift-3 35s ease-in-out infinite;
+}
+
+/* ─── Creative background animations ────────────────────── */
+@keyframes node-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+}
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+@keyframes float-sym {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: inherit;
+  }
+  33% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-2deg);
+  }
+}
+
+/* ─── Liveness ring / keystroke waveform ────────────────── */
+@keyframes wave-scan {
+  0% {
+    transform: translateX(-30%);
+  }
+  100% {
+    transform: translateX(30%);
+  }
+}
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@keyframes bar-flicker {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* ─── Drawer / modal transitions ────────────────────────── */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slide-in-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-slide-up {
+  animation: slide-in-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-fade-in {
+  animation: fade-in 0.24s ease-out;
+}
+.animate-scale-in {
+  animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─── Gradient text ─────────────────────────────────────── */
+.gradient-text-cyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass surface ─────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.glass-strong {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────── */
+.scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scroll-quiet::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-quiet::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+}
+.scroll-quiet:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+::selection {
+  background: #dbeafe;
+  color: #111827;
+}

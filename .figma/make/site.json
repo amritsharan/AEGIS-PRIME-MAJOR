@@ -1,0 +1,11 @@
+{
+  "title": "noneofyourwork",
+  "description": "Securely authenticate and manage zero-knowledge identity with a minimalist interface, enabling encrypted conversational workflows and autonomous project scaffolding.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
