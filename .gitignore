@@ -21,3 +21,6 @@ logs/
 /.plugins/
 /.opencode-skills/
 .kilo/
+__pycache__/
+*.py[cod]
+*$py.class
