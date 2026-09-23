@@ -12,6 +12,7 @@ from typing import Any, Callable, Optional
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.database.session import AsyncSessionLocal
 
 from app.policy.engine import PolicyEngine, ScopeConfig
 from app.agents.llm_provider import llm_provider
@@ -73,8 +74,9 @@ class ScanOrchestrator:
                 extra_metadata=json.dumps(metadata or {}),
                 timestamp=datetime.utcnow(),
             )
-            self.db.add(event)
-            await self.db.commit()
+            async with AsyncSessionLocal() as session:
+                session.add(event)
+                await session.commit()
 
             if self.event_callback:
                 await self.event_callback({
