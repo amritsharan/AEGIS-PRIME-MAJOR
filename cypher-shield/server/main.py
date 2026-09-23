@@ -28,6 +28,8 @@ app.add_middleware(
 
 class PubKeyPayload(BaseModel):
     public_key: str
+    file_id: int = None
+    private_key: str = None
 
 @app.get("/")
 def read_root():
@@ -66,6 +68,8 @@ async def aegis_upload(request: Request):
         f.write(enc_data)
     # 5. Store DB metadata
     db_id = database.save_file_metadata(filename, signature, cipher_path, "aegis")
+    crypto_utils.AEGIS_KEY_STORE[db_id] = priv
+    crypto_utils.AEGIS_KEY_STORE[pub] = priv
     return {
         "file_id": db_id,
         "filename": filename,
@@ -101,7 +105,11 @@ async def aegis_download(file_id: int = Form(...), private_key: str = Form(...),
 
 @app.post("/aegis/crack")
 def crack_aegis(payload: PubKeyPayload):
-    result = crypto_utils.simulate_shors_attack(payload.public_key)
+    result = crypto_utils.simulate_shors_attack(
+        public_key=payload.public_key,
+        file_id=payload.file_id,
+        private_key=payload.private_key
+    )
     return result
 
 # === CYPHER-SHIELD ROUTES ===
@@ -157,7 +165,7 @@ async def cypher_download(file_id: int = Form(...), shared_secret: str = Form(..
     try:
         dec_data = crypto_utils.decrypt_cypher_shield(payload_cipher, shared_secret)
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Decryption failed.")
+        raise HTTPException(status_code=400, detail="Decryption failed: Poly1305 MAC tag authentication rejected. ML-KEM session key is zeroized, mismatched, or corrupted.")
         
     is_valid = crypto_utils.verify_cypher_shield(dec_data, meta['digital_signature'])
     if not is_valid:

@@ -56,6 +56,8 @@ function App() {
   const [inputMode, setInputMode] = useState("file");
   const [vaultData, setVaultData] = useState(null);
   const [decryptedText, setDecryptedText] = useState(null);
+  const [decryptionError, setDecryptionError] = useState(null);
+  const [isKeyZeroized, setIsKeyZeroized] = useState(false);
   const [attackResult, setAttackResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -189,6 +191,8 @@ function App() {
         setRatchetLogs(data.logs.slice(0, i + 1));
       }
       
+      setIsKeyZeroized(true);
+      setDecryptedText(null);
       fetchQre();
       fetchLedger();
     } catch (err) {
@@ -284,6 +288,8 @@ function App() {
     setInputText("");
     setInputMode("file");
     setDecryptedText(null);
+    setDecryptionError(null);
+    setIsKeyZeroized(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -291,6 +297,8 @@ function App() {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
       setInputText("");
+      setDecryptedText(null);
+      setDecryptionError(null);
     }
   };
 
@@ -298,6 +306,9 @@ function App() {
     if (inputMode === "file" && !selectedFile) return;
     if (inputMode === "text" && !inputText.trim()) return;
     setLoading(true);
+    setDecryptionError(null);
+    setDecryptedText(null);
+    setIsKeyZeroized(false);
     try {
       const endpoint = activeSystem === "aegis" ? "/aegis/upload" : "/cypher/upload";
       let res;
@@ -324,23 +335,36 @@ function App() {
     setLoading(false);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (forceInvalid = false) => {
     if (!vaultData) return;
     setLoading(true);
+    setDecryptionError(null);
+    setDecryptedText(null);
     try {
       const endpoint = activeSystem === "aegis" ? "/aegis/download" : "/cypher/download";
       const formData = new FormData();
       formData.append("file_id", vaultData.file_id);
       
       if (activeSystem === "aegis") {
-        formData.append("private_key", vaultData.private_key);
+        formData.append("private_key", forceInvalid ? "INVALID_RSA_KEY" : vaultData.private_key);
         formData.append("public_key", vaultData.public_key);
       } else {
-        formData.append("shared_secret", vaultData.shared_secret_simulate);
+        const secretToSend = (forceInvalid || isKeyZeroized) ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" : vaultData.shared_secret_simulate;
+        formData.append("shared_secret", secretToSend);
       }
       
       const res = await fetch(`${API_URL}${endpoint}`, { method: "POST", body: formData });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errBody = await res.text();
+        let errorMsg = "Decryption failed: Poly1305 MAC tag mismatch or corrupted secret.";
+        try {
+          const parsed = JSON.parse(errBody);
+          if (parsed.detail) errorMsg = parsed.detail;
+        } catch (e) {
+          if (errBody) errorMsg = errBody;
+        }
+        throw new Error(errorMsg);
+      }
       
       const disposition = res.headers.get('Content-Disposition');
       let filename = 'decrypted_file';
@@ -361,7 +385,7 @@ function App() {
       }
     } catch (err) {
       console.error("Download Error:", err);
-      alert(`Download/Decryption failed: ${err.message}`);
+      setDecryptionError(err.message || "Decryption failed: Poly1305 AEAD validation rejected.");
     }
     setLoading(false);
   };
@@ -369,13 +393,17 @@ function App() {
   const handleAttack = async () => {
     if (!vaultData || !vaultData.public_key) return;
     setLoading(true);
-    setAttackResult({ logs: ["Initializing Quantum Registers..."], success: null, message: "Standby...", cracked_key_snippet: "" });
+    setAttackResult({ logs: ["Initializing Quantum Registers..."], success: null, message: "Standby...", cracked_key_snippet: "", decrypted_content: null });
     try {
       const endpoint = activeSystem === "aegis" ? "/aegis/crack" : "/cypher/crack";
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ public_key: vaultData.public_key })
+        body: JSON.stringify({ 
+          public_key: vaultData.public_key,
+          file_id: vaultData.file_id,
+          private_key: vaultData.private_key
+        })
       });
       const data = await res.json();
       
@@ -683,13 +711,42 @@ function App() {
               {vaultData && (
                  <div className="control-group" style={{marginTop: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.1)"}}>
                     <label className="control-label">{vaultData.filename === 'input.txt' ? 'Text Available in Vault:' : 'File Available in Vault:'}</label>
-                    <button className="btn" onClick={handleDownload} disabled={loading} style={{background: 'rgba(0, 255, 135, 0.1)', color: 'var(--neon-green)', borderColor: 'var(--neon-green)'}}>
-                      <Download size={18} /> {vaultData.filename === 'input.txt' ? 'Fetch & Decrypt Text' : 'Fetch & Decrypt File'}
-                    </button>
+                    
+                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                      <button className="btn" onClick={() => handleDownload(false)} disabled={loading} style={{flex: 1, minWidth: '150px', background: isKeyZeroized ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 255, 135, 0.1)', color: isKeyZeroized ? 'var(--text-secondary)' : 'var(--neon-green)', borderColor: isKeyZeroized ? 'var(--border-color)' : 'var(--neon-green)'}}>
+                        <Download size={18} /> {vaultData.filename === 'input.txt' ? 'Fetch & Decrypt Text' : 'Fetch & Decrypt File'}
+                      </button>
+
+                      {activeSystem === 'cypher' && (
+                        <button className="btn" onClick={() => { setIsKeyZeroized(!isKeyZeroized); setDecryptedText(null); setDecryptionError(null); playClickSound('special'); }} disabled={loading} style={{background: isKeyZeroized ? 'rgba(255, 8, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)', color: isKeyZeroized ? 'var(--neon-red)' : 'var(--text-secondary)', borderColor: isKeyZeroized ? 'var(--neon-red)' : 'var(--border-color)'}}>
+                          <Trash2 size={16} /> {isKeyZeroized ? 'Key Zeroized (0x00)' : 'Zeroize Session Key'}
+                        </button>
+                      )}
+                    </div>
+
+                    {isKeyZeroized && (
+                      <p style={{fontSize: '0.8rem', color: 'var(--neon-red)', marginBottom: '0.5rem'}}>
+                        ⚠️ RAM Scrub Active: ML-KEM shared secret wiped (0x00). Decryption requests will be rejected by Poly1305 AEAD MAC.
+                      </p>
+                    )}
+
                     {decryptedText && (
                       <div className="data-box alert" style={{marginTop: "1rem", borderColor: "var(--neon-green)", background: "rgba(0, 255, 135, 0.05)"}}>
-                        <div className="control-label" style={{color: 'var(--neon-green)', marginBottom: '0.5rem'}}>Decrypted Output:</div>
+                        <div className="control-label" style={{color: 'var(--neon-green)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                          <CheckCircle2 size={16} /> Decrypted Output:
+                        </div>
                         <pre style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--text-primary)', margin: 0}}>{decryptedText}</pre>
+                      </div>
+                    )}
+
+                    {decryptionError && (
+                      <div className="data-box alert" style={{marginTop: "1rem", borderColor: "var(--neon-red)", background: "rgba(255, 8, 68, 0.08)", borderLeft: "4px solid var(--neon-red)"}}>
+                        <div className="control-label" style={{color: 'var(--neon-red)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold'}}>
+                          <AlertTriangle size={16} /> Decryption FAILED:
+                        </div>
+                        <pre style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--text-primary)', margin: 0, fontSize: '0.88rem'}}>
+                          {decryptionError}
+                        </pre>
                       </div>
                     )}
                  </div>
@@ -783,6 +840,17 @@ function App() {
                        <p style={{marginTop: "1rem", fontSize: "0.9rem", color: "var(--text-secondary)"}}>
                          {attackResult.message}
                        </p>
+
+                       {attackResult.success && attackResult.decrypted_content && (
+                         <div className="data-box alert" style={{marginTop: "1rem", borderColor: "var(--neon-red)", background: "rgba(255, 8, 68, 0.08)", borderLeft: "4px solid var(--neon-red)"}}>
+                           <div className="control-label" style={{color: 'var(--neon-red)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold'}}>
+                             <Unlock size={14} /> Intercepted Plaintext Message / User Payload:
+                           </div>
+                           <pre style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--text-primary)', margin: 0, fontFamily: 'monospace', fontSize: '0.95rem'}}>
+                             {attackResult.decrypted_content}
+                           </pre>
+                         </div>
+                       )}
                      </div>
                    )}
                  </div>

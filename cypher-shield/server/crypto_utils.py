@@ -23,11 +23,15 @@ ACTIVE_LATTICE_STATE = {
     "last_ratcheted": time.strftime("%Y-%m-%d %H:%M:%S")
 }
 
+# In-memory store for demo private key lookup during simulated Shor's factorisation
+AEGIS_KEY_STORE = {}
+
 def generate_aegis_keys() -> tuple[str, str]:
     """Generates standard RSA keys representing legacy Aegis Prime encryption."""
     key = RSA.generate(1024) # 1024 for faster demo, realistically 2048 or 4096
     private_key = key.export_key().decode('utf-8')
     public_key = key.publickey().export_key().decode('utf-8')
+    AEGIS_KEY_STORE[public_key] = private_key
     return public_key, private_key
 
 def encrypt_aegis(data: bytes, public_key_str: str) -> bytes:
@@ -75,14 +79,16 @@ def verify_aegis(data: bytes, signature_str: str, public_key_str: str) -> bool:
     except (ValueError, TypeError):
         return False
 
-def simulate_shors_attack(public_key: str):
+def simulate_shors_attack(public_key: str, file_id: int = None, private_key: str = None):
     """
     Simulates Shor's algorithm execution on a Quantum Computer using IBM Qiskit.
     We build a Quantum Circuit using StatevectorSampler to represent the 
     period-finding subroutine to factor the public key modulus.
+    If a file_id/payload is targeted, the factored private key decrypts the user message.
     """
     from qiskit import QuantumCircuit # type: ignore
     from qiskit.primitives import StatevectorSampler # type: ignore
+    import database
 
     qc = QuantumCircuit(4)
     qc.h([0,1,2]) # Put control registers in superposition
@@ -108,11 +114,37 @@ def simulate_shors_attack(public_key: str):
         "Prime factors p and q discovered! Assembling RSA Private Key..."
     ]
     
+    resolved_priv = private_key or AEGIS_KEY_STORE.get(public_key)
+    if file_id and not resolved_priv:
+        resolved_priv = AEGIS_KEY_STORE.get(file_id)
+
+    decrypted_content = None
+    if file_id:
+        meta = database.get_file_metadata(file_id)
+        if meta and meta.get('encryption_type') == 'aegis':
+            cpath = meta.get('cipher_text_path')
+            if resolved_priv and cpath and os.path.exists(cpath):
+                try:
+                    with open(cpath, "rb") as f:
+                        enc_data = f.read()
+                    dec_data = decrypt_aegis(enc_data, resolved_priv)
+                    try:
+                        decrypted_content = dec_data.decode('utf-8')
+                    except Exception:
+                        decrypted_content = f"[Binary File Decrypted: {meta.get('filename')} ({len(dec_data)} bytes)]"
+                    logs.append("[EXPLOIT] AES-OAEP session key unlocked with factored RSA private key.")
+                    logs.append(f"[EXPLOIT] Intercepted payload recovered: {len(dec_data)} bytes.")
+                except Exception as e:
+                    logs.append(f"[EXPLOIT] Warning during payload decryption: {str(e)}")
+
+    cracked_snippet = (resolved_priv[:120] + "\n... (FACTORIZATION COMPLETE)") if resolved_priv else "-----BEGIN ENCRYPTED PRIVATE KEY-----\nMIIFDjBABgkqhkiG9w0... (RECOVERED)"
+
     return {
         "success": True,
         "logs": logs,
         "message": "Aegis Prime RSA mathematically broken. Private Key successfully derived from Public Key using Qiskit Shor's Simulation.",
-        "cracked_key_snippet": "-----BEGIN ENCRYPTED PRIVATE KEY-----\nMIIFDjBABgkqhkiG9w0... (RECOVERED)"
+        "cracked_key_snippet": cracked_snippet,
+        "decrypted_content": decrypted_content
     }
 
 
