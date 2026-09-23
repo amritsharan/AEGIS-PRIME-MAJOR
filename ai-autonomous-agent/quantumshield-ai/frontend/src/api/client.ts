@@ -40,6 +40,9 @@ export const scansApi = {
   getQuantum: (id: string) => api.get(`/api/scans/${id}/quantum`).then(r => r.data),
   getAttackGraph: (id: string) => api.get(`/api/scans/${id}/attack-graph`).then(r => r.data),
   getDiff: (id: string) => api.get(`/api/scans/${id}/diff`).then(r => r.data),
+  getMerkleAudit: (id: string) => api.get(`/api/scans/${id}/merkle-audit`).then(r => r.data),
+  verifyMerkleProof: (id: string, data: { event_hash: string; proof_path: any[]; expected_root: string }) =>
+    api.post(`/api/scans/${id}/merkle-audit/verify`, data).then(r => r.data),
   cancel: (id: string) => api.post(`/api/scans/${id}/cancel`).then(r => r.data),
 }
 

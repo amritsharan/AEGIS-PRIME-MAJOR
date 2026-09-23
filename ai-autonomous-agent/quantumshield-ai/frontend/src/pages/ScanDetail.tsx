@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Activity, Shield, Atom, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Activity, Shield, Atom, Clock, CheckCircle2, XCircle, AlertTriangle, Layers, List } from 'lucide-react'
 import { scansApi, createScanWebSocket } from '../api/client'
+import MerkleAuditInspector from '../components/MerkleAuditInspector'
 
 interface ScanEvent {
   id?: string
@@ -45,6 +46,7 @@ export default function ScanDetail() {
   const [events, setEvents] = useState<ScanEvent[]>([])
   const [findings, setFindings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeView, setActiveView] = useState<'activity' | 'merkle'>('activity')
   const logRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -168,92 +170,123 @@ export default function ScanDetail() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Live Activity Log */}
-        <div className="qs-card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Activity size={16} className="text-qs-green" />
-              Live Agent Activity
-            </h3>
-            <span className="text-xs text-qs-text-dim font-mono">{events.length} events</span>
-          </div>
-          <div
-            ref={logRef}
-            className="h-96 overflow-y-auto space-y-1 font-mono text-xs pr-2"
-          >
-            {events.length === 0 ? (
-              <div className="text-qs-text-dim text-center py-8">Waiting for events...</div>
-            ) : (
-              events.map((event, idx) => {
-                const EventIcon = EVENT_ICONS[event.event_type] || Activity
-                const stateColor = STATE_COLORS[event.state || ''] || 'text-qs-text-dim'
-                const time = new Date(event.timestamp).toLocaleTimeString()
-                return (
-                  <div key={idx} className="flex gap-2 items-start hover:bg-qs-border/10 rounded px-1 py-0.5">
-                    <span className="text-qs-text-dim flex-shrink-0 w-16">[{time.slice(0,8)}]</span>
-                    <EventIcon size={10} className={`flex-shrink-0 mt-0.5 ${
-                      event.event_type === 'finding_confirmed' ? 'text-qs-orange' :
-                      event.event_type === 'scan_complete' ? 'text-qs-green' :
-                      event.event_type === 'error' ? 'text-qs-red' :
-                      'text-qs-text-dim'
-                    }`} />
-                    {event.state && (
-                      <span className={`flex-shrink-0 ${stateColor}`}>[{event.state}]</span>
-                    )}
-                    <span className="text-qs-text leading-relaxed">{event.message}</span>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
+      {/* View Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-qs-border/60 pb-3">
+        <button
+          onClick={() => setActiveView('activity')}
+          className={`px-4 py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-2 transition-all ${
+            activeView === 'activity'
+              ? 'bg-qs-blue text-white font-bold shadow-md'
+              : 'bg-qs-card text-qs-text-dim hover:text-white'
+          }`}
+        >
+          <List size={14} />
+          <span>Live Activity & Findings ({events.length})</span>
+        </button>
 
-        {/* Findings */}
-        <div className="qs-card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <AlertTriangle size={16} className="text-qs-orange" />
-              Findings ({findings.length})
-            </h3>
-            <div className="flex gap-2">
-              {Object.entries(severityCounts).map(([sev, cnt]) => (
-                <span key={sev} className={`text-xs px-1.5 py-0.5 rounded font-mono severity-${sev.toLowerCase()}`}>
-                  {sev[0]}: {cnt as number}
-                </span>
-              ))}
+        <button
+          onClick={() => setActiveView('merkle')}
+          className={`px-4 py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-2 transition-all ${
+            activeView === 'merkle'
+              ? 'bg-qs-blue text-white font-bold shadow-md'
+              : 'bg-qs-card text-qs-text-dim hover:text-white'
+          }`}
+        >
+          <Layers size={14} className="text-cyan-400" />
+          <span>Cryptographic Merkle Audit Ledger</span>
+        </button>
+      </div>
+
+      {activeView === 'merkle' ? (
+        <MerkleAuditInspector scanId={scanId!} />
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Live Activity Log */}
+          <div className="qs-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <Activity size={16} className="text-qs-green" />
+                Live Agent Activity
+              </h3>
+              <span className="text-xs text-qs-text-dim font-mono">{events.length} events</span>
+            </div>
+            <div
+              ref={logRef}
+              className="h-96 overflow-y-auto space-y-1 font-mono text-xs pr-2"
+            >
+              {events.length === 0 ? (
+                <div className="text-qs-text-dim text-center py-8">Waiting for events...</div>
+              ) : (
+                events.map((event, idx) => {
+                  const EventIcon = EVENT_ICONS[event.event_type] || Activity
+                  const stateColor = STATE_COLORS[event.state || ''] || 'text-qs-text-dim'
+                  const time = new Date(event.timestamp).toLocaleTimeString()
+                  return (
+                    <div key={idx} className="flex gap-2 items-start hover:bg-qs-border/10 rounded px-1 py-0.5">
+                      <span className="text-qs-text-dim flex-shrink-0 w-16">[{time.slice(0,8)}]</span>
+                      <EventIcon size={10} className={`flex-shrink-0 mt-0.5 ${
+                        event.event_type === 'finding_confirmed' ? 'text-qs-orange' :
+                        event.event_type === 'scan_complete' ? 'text-qs-green' :
+                        event.event_type === 'error' ? 'text-qs-red' :
+                        'text-qs-text-dim'
+                      }`} />
+                      {event.state && (
+                        <span className={`flex-shrink-0 ${stateColor}`}>[{event.state}]</span>
+                      )}
+                      <span className="text-qs-text leading-relaxed">{event.message}</span>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
-          <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-            {findings.length === 0 ? (
-              <div className="text-center py-8 text-qs-text-dim">
-                {isRunning ? 'Running tests...' : 'No findings'}
+
+          {/* Findings */}
+          <div className="qs-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <AlertTriangle size={16} className="text-qs-orange" />
+                Findings ({findings.length})
+              </h3>
+              <div className="flex gap-2">
+                {Object.entries(severityCounts).map(([sev, cnt]) => (
+                  <span key={sev} className={`text-xs px-1.5 py-0.5 rounded font-mono severity-${sev.toLowerCase()}`}>
+                    {sev[0]}: {cnt as number}
+                  </span>
+                ))}
               </div>
-            ) : (
-              findings.map(f => (
-                <div
-                  key={f.id}
-                  className="p-3 rounded-lg bg-qs-surface border border-qs-border hover:border-qs-border/60 transition-all cursor-pointer"
-                  onClick={() => navigate(`/findings`)}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 severity-${f.severity?.toLowerCase()}`}>
-                      {f.severity}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-qs-text truncate">{f.title}</div>
-                      <div className="text-xs text-qs-text-dim truncate">{f.endpoint}</div>
-                    </div>
-                    {f.finding_type === 'QUANTUM' && (
-                      <span className="quantum-badge flex-shrink-0">⚛ QUANTUM</span>
-                    )}
-                  </div>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+              {findings.length === 0 ? (
+                <div className="text-center py-8 text-qs-text-dim">
+                  {isRunning ? 'Running tests...' : 'No findings'}
                 </div>
-              ))
-            )}
+              ) : (
+                findings.map(f => (
+                  <div
+                    key={f.id}
+                    className="p-3 rounded-lg bg-qs-surface border border-qs-border hover:border-qs-border/60 transition-all cursor-pointer"
+                    onClick={() => navigate(`/findings`)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 severity-${f.severity?.toLowerCase()}`}>
+                        {f.severity}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-qs-text truncate">{f.title}</div>
+                        <div className="text-xs text-qs-text-dim truncate">{f.endpoint}</div>
+                      </div>
+                      {f.finding_type === 'QUANTUM' && (
+                        <span className="quantum-badge flex-shrink-0">⚛ QUANTUM</span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Score Summary (when complete) */}
       {scan.status === 'COMPLETED' && (

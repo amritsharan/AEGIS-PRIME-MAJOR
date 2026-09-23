@@ -281,3 +281,55 @@ async def get_scan_diff_auto(scan_id: str, db: AsyncSession = Depends(get_db)):
     diff_data["current_scan_id"] = scan_id
     return diff_data
 
+
+@router.get("/{scan_id}/merkle-audit")
+async def get_scan_merkle_audit(scan_id: str, db: AsyncSession = Depends(get_db)):
+    """Generate Merkle Tree and sequential cryptographic hash-chain for scan audit ledger."""
+    from app.services.merkle_audit import MerkleAuditLedger
+
+    scan_res = await db.execute(select(Scan).where(Scan.id == scan_id))
+    scan = scan_res.scalar_one_or_none()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    events_res = await db.execute(
+        select(AgentEvent)
+        .where(AgentEvent.scan_id == scan_id)
+        .order_by(AgentEvent.timestamp.asc())
+    )
+    events = events_res.scalars().all()
+
+    ledger = MerkleAuditLedger(scan_id, list(events))
+    return ledger.get_audit_summary()
+
+
+class MerkleVerifyRequest(BaseModel):
+    event_hash: str
+    proof_path: list[dict]
+    expected_root: Optional[str] = None
+    merkle_root: Optional[str] = None
+
+
+@router.post("/{scan_id}/merkle-audit/verify")
+async def verify_scan_merkle_leaf(
+    scan_id: str,
+    data: MerkleVerifyRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Cryptographically verify an inclusion proof against the Merkle Root."""
+    from app.services.merkle_audit import MerkleAuditLedger
+
+    root_to_check = data.expected_root or data.merkle_root or ""
+    is_valid = MerkleAuditLedger.verify_proof(
+        data.event_hash,
+        data.proof_path,
+        root_to_check
+    )
+    return {
+        "scan_id": scan_id,
+        "verified": is_valid,
+        "event_hash": data.event_hash,
+        "merkle_root": root_to_check,
+        "status": "VALID_INCLUSION_PROOF" if is_valid else "TAMPER_DETECTED"
+    }
+
