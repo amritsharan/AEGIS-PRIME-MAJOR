@@ -22,20 +22,13 @@ export default function LuminaLoginScreen({ onLogin }) {
 
   const handleSubmit = (e) => {
     e?.preventDefault();
-    setIsAuthenticating(true);
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      onLogin(zkAuthInfo);
-    }, 600);
+    onLogin(zkAuthInfo || { status: 'AUTHENTICATED' });
   };
 
   const handleVerifiedZkLogin = (zkData) => {
     setZkAuthInfo(zkData);
-    setIsAuthenticating(true);
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      onLogin(zkData);
-    }, 400);
+    setIsZkModalOpen(false);
+    onLogin(zkData);
   };
 
   return (

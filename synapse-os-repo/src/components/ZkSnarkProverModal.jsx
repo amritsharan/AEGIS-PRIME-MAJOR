@@ -65,6 +65,15 @@ export default function ZkSnarkProverModal({ isOpen, onClose, onVerifiedLogin, d
 
       if (verif.verified) {
         setStage('VERIFIED');
+        // Instantly transition into Synapse-OS after brief 250ms verification confirmation
+        setTimeout(() => {
+          onVerifiedLogin({
+            zkProof: result.proof,
+            nullifier: result.nullifierHex,
+            commitment: result.commitmentHex
+          });
+          onClose();
+        }, 250);
       } else {
         setStage('FAILED');
       }

@@ -142,15 +142,15 @@ export async function generateZkSnarkProof({
 }) {
   const startTime = performance.now();
 
-  if (onProgress) onProgress("INITIALIZING_CIRCUIT", "Loading IdentityVerifier.circom constraint matrix...", 10);
-  await new Promise((r) => setTimeout(r, 120));
+  if (onProgress) onProgress("INITIALIZING_CIRCUIT", "Loading IdentityVerifier.circom constraint matrix...", 15);
+  await new Promise((r) => setTimeout(r, 20));
 
   const sScalar = typeof secretKey === "bigint" ? secretKey : hashStringToField(String(secretKey));
   const rScalar = typeof blindingFactor === "bigint" ? blindingFactor : hashStringToField(String(blindingFactor));
   const epScalar = typeof epochId === "bigint" ? epochId : BigInt(epochId);
 
-  if (onProgress) onProgress("SOLVING_R1CS_WITNESS", "Computing Poseidon ZK sponge & R1CS witness polynomial...", 35);
-  await new Promise((r) => setTimeout(r, 160));
+  if (onProgress) onProgress("SOLVING_R1CS_WITNESS", "Computing Poseidon ZK sponge & R1CS witness polynomial...", 45);
+  await new Promise((r) => setTimeout(r, 20));
 
   const commitment = poseidonHash2(sScalar, rScalar);
   const nullifier = poseidonHash2(sScalar, epScalar);
@@ -165,8 +165,8 @@ export async function generateZkSnarkProof({
     rScalar
   ];
 
-  if (onProgress) onProgress("EVALUATING_QAP", "Evaluating Quadratic Arithmetic Program (QAP) polynomials (deg=384)...", 65);
-  await new Promise((r) => setTimeout(r, 180));
+  if (onProgress) onProgress("EVALUATING_QAP", "Evaluating Quadratic Arithmetic Program (QAP) polynomials (deg=384)...", 75);
+  await new Promise((r) => setTimeout(r, 20));
 
   // Synthesize Groth16 elliptic curve proof points on BN254
   // pi_A in G1, pi_B in G2, pi_C in G1
@@ -200,8 +200,8 @@ export async function generateZkSnarkProof({
     "0x0000000000000000000000000000000000000000000000000000000000000001"
   ];
 
-  if (onProgress) onProgress("SYNTHESIZING_PROOF", "Finalizing Groth16 signature points (pi_A, pi_B, pi_C)...", 90);
-  await new Promise((r) => setTimeout(r, 140));
+  if (onProgress) onProgress("SYNTHESIZING_PROOF", "Finalizing Groth16 signature points (pi_A, pi_B, pi_C)...", 95);
+  await new Promise((r) => setTimeout(r, 20));
 
   const totalTimeMs = Math.round(performance.now() - startTime);
 
