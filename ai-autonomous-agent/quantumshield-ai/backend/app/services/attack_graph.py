@@ -86,7 +86,7 @@ def generate_attack_graph(
         })
         
         # Link finding to matching endpoint or root
-        linked_ep = next((f"node-ep-{ep.id or i}" for i, ep in enumerate(endpoints or []) if ep.path == f.endpoint), root_id)
+        linked_ep = next((f"node-ep-{ep.id or i}" for i, ep in enumerate(endpoints or []) if str(ep.path) == str(f.endpoint)), root_id)
         links.append({
             "source": linked_ep,
             "target": f_id,

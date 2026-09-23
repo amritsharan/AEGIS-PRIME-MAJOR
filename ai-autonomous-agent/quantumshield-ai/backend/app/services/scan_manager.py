@@ -46,16 +46,18 @@ async def _run_scan_task(scan_id: str):
                 return
 
             # Build scope config
-            allowed_hosts = json.loads(target.allowed_hosts or "[]") or [_extract_host(target.url)]
-            allowed_ports = json.loads(target.allowed_ports or "[8080, 8000, 80, 443]")
+            raw_hosts = str(target.allowed_hosts or "[]")
+            allowed_hosts = json.loads(raw_hosts) or [_extract_host(str(target.url))]
+            raw_ports = str(target.allowed_ports or "[8080, 8000, 80, 443]")
+            allowed_ports = json.loads(raw_ports)
 
             scope = ScopeConfig(
-                target=target.url,
-                environment=target.environment or "lab",
+                target=str(target.url),
+                environment=str(target.environment or "lab"),
                 allowed_hosts=allowed_hosts,
                 allowed_ports=allowed_ports,
-                destructive_tests=target.destructive_tests,
-                max_requests_per_minute=target.max_requests_per_minute or 60,
+                destructive_tests=bool(target.destructive_tests),
+                max_requests_per_minute=int(target.max_requests_per_minute or 60),
                 test_account_username="alice",
                 test_account_password="Alice@123",
             )

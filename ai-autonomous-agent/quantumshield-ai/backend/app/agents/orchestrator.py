@@ -61,7 +61,7 @@ class ScanOrchestrator:
         logger.info(f"[SCAN:{scan_id}] [{state}] {message}")
         try:
             event = AgentEvent(
-                scan_id=str(scan_id),
+                scan_id=scan_id,
                 event_type=event_type,
                 agent=agent,
                 message=message,
@@ -81,7 +81,7 @@ class ScanOrchestrator:
             if self.event_callback:
                 await self.event_callback({
                     "type": "agent_event",
-                    "scan_id": str(scan_id),
+                    "scan_id": scan_id,
                     "event_type": event_type,
                     "agent": agent,
                     "message": message,
@@ -91,7 +91,7 @@ class ScanOrchestrator:
         except Exception as e:
             logger.error(f"Event emission error: {e}")
 
-    async def run_scan(self, scan: Scan, scope: ScopeConfig):
+    async def run_scan(self, scan: Any, scope: ScopeConfig):
         """
         Main scan entry point. Runs the complete security assessment.
         """
@@ -140,7 +140,7 @@ class ScanOrchestrator:
             # Store endpoints in DB
             for api in recon_result.apis[:50]:  # Cap at 50
                 auth_req = api.get("auth_required", False)
-                auth_bool = bool(auth_req) if isinstance(auth_req, bool) else (str(auth_req).lower() in ("true", "1", "yes", "post only", "required"))
+                auth_bool = auth_req if isinstance(auth_req, bool) else (str(auth_req).lower() in ("true", "1", "yes", "post only", "required"))
                 ep = Endpoint(
                     scan_id=scan_id,
                     path=api.get("path", "/"),
@@ -257,11 +257,11 @@ class ScanOrchestrator:
             ]
             quantum_result = calculate_quantum_risk_score(crypto_data)
             scan.quantum_score = quantum_result["quantum_score"]
-            scan.pqc_readiness = quantum_result.get("pqc_readiness_pct")
+            scan.pqc_readiness = quantum_result.get("pqc_readiness_pct", 0.0)
 
             # ── PQC Assessment ────────────────────────────────────────────
             pqc_result = assess_pqc_readiness(crypto_data)
-            scan.pqc_readiness = pqc_result.get("pqc_readiness_score")
+            scan.pqc_readiness = pqc_result.get("pqc_readiness_score", 0.0)
 
             # ── Finalize ──────────────────────────────────────────────────
             scan.status = ScanStatus.COMPLETED
@@ -289,17 +289,18 @@ class ScanOrchestrator:
             await self._update_scan_status(scan, ScanStatus.FAILED, error=str(e))
             await self.emit(scan_id, "error", f"Scan failed: {str(e)[:200]}", state="ERROR")
 
-    async def _run_auth_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_auth_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run authentication tests."""
-        await self.emit(scan.id, "module_start", "Starting authentication security tests.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting authentication security tests.",
                        agent="AuthTestEngine", tool="auth_test", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 6
         try:
             results = await run_auth_tests(
-                target_url, scope, self.policy, scan.id,
-                event_callback=lambda etype, msg: self.emit(scan.id, etype, msg, agent="AuthTestEngine", state="EXECUTE")
+                target_url, scope, self.policy, scan_id,
+                event_callback=lambda etype, msg: self.emit(scan_id, etype, msg, agent="AuthTestEngine", state="EXECUTE")
             )
-            await self.emit(scan.id, "module_complete",
+            await self.emit(scan_id, "module_complete",
                            f"Authentication tests: {len([r for r in results if r.status == 'SUSPICIOUS'])} suspicious findings.",
                            agent="AuthTestEngine", state="OBSERVE_RESULT")
             return {"findings": [
@@ -313,18 +314,19 @@ class ScanOrchestrator:
                 for r in results if r.status == "SUSPICIOUS"
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"Auth tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"Auth tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_authz_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_authz_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run authorization tests."""
-        await self.emit(scan.id, "module_start", "Starting authorization/IDOR tests.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting authorization/IDOR tests.",
                        agent="AuthzTestEngine", tool="authz_test_idor", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 5
         try:
             results = await run_authz_tests(
-                target_url, scope, self.policy, scan.id,
-                event_callback=lambda etype, msg: self.emit(scan.id, etype, msg, agent="AuthzTestEngine", state="EXECUTE")
+                target_url, scope, self.policy, scan_id,
+                event_callback=lambda etype, msg: self.emit(scan_id, etype, msg, agent="AuthzTestEngine", state="EXECUTE")
             )
             return {"findings": [
                 {
@@ -337,18 +339,19 @@ class ScanOrchestrator:
                 for r in results if r.status == "SUSPICIOUS"
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"AuthZ tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"AuthZ tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_injection_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_injection_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run injection tests."""
-        await self.emit(scan.id, "module_start", "Starting injection security tests.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting injection security tests.",
                        agent="InjectionTestEngine", tool="injection_test_sql", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 4
         try:
             results = await run_injection_tests(
-                target_url, scope, self.policy, scan.id,
-                event_callback=lambda etype, msg: self.emit(scan.id, etype, msg, agent="InjectionTestEngine", state="EXECUTE")
+                target_url, scope, self.policy, scan_id,
+                event_callback=lambda etype, msg: self.emit(scan_id, etype, msg, agent="InjectionTestEngine", state="EXECUTE")
             )
             return {"findings": [
                 {
@@ -361,18 +364,19 @@ class ScanOrchestrator:
                 for r in results if r.status == "SUSPICIOUS"
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"Injection tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"Injection tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_config_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_config_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run configuration security tests."""
-        await self.emit(scan.id, "module_start", "Starting configuration security tests.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting configuration security tests.",
                        agent="ConfigTestEngine", tool="config_test", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 6
         try:
             results = await run_config_tests(
-                target_url, scope, self.policy, scan.id,
-                event_callback=lambda etype, msg: self.emit(scan.id, etype, msg, agent="ConfigTestEngine", state="EXECUTE")
+                target_url, scope, self.policy, scan_id,
+                event_callback=lambda etype, msg: self.emit(scan_id, etype, msg, agent="ConfigTestEngine", state="EXECUTE")
             )
             return {"findings": [
                 {
@@ -385,12 +389,13 @@ class ScanOrchestrator:
                 for r in results if r.status == "SUSPICIOUS"
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"Config tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"Config tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_api_security_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_api_security_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run OpenAPI and GraphQL security audits."""
-        await self.emit(scan.id, "module_start", "Starting OpenAPI & GraphQL security audit.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting OpenAPI & GraphQL security audit.",
                        agent="APISecurityEngine", tool="api_security_audit", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 4
         try:
@@ -407,12 +412,13 @@ class ScanOrchestrator:
                 for f in raw_findings
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"API security tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"API security tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_jwt_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_jwt_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run JSON Web Token (JWT) security testing."""
-        await self.emit(scan.id, "module_start", "Starting JWT authentication and signature audit.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting JWT authentication and signature audit.",
                        agent="JWTSecurityEngine", tool="jwt_signature_audit", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 3
         try:
@@ -430,12 +436,13 @@ class ScanOrchestrator:
                 for f in raw_findings
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"JWT security tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"JWT security tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_websocket_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_websocket_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run Target WebSocket & CSWSH security tests."""
-        await self.emit(scan.id, "module_start", "Auditing target WebSocket endpoints and CSWSH defenses.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Auditing target WebSocket endpoints and CSWSH defenses.",
                        agent="WebSocketEngine", tool="websocket_audit", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 2
         try:
@@ -452,12 +459,13 @@ class ScanOrchestrator:
                 for f in raw_findings
             ]}
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"WebSocket tests failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"WebSocket tests failed: {e}", state="EXECUTE")
             return {"findings": []}
 
-    async def _run_quantum_module(self, scan: Scan, scope: ScopeConfig, target_url: str) -> dict:
+    async def _run_quantum_module(self, scan: Any, scope: ScopeConfig, target_url: str) -> dict:
         """Run quantum security analysis."""
-        await self.emit(scan.id, "module_start", "Starting quantum cryptographic analysis.",
+        scan_id = str(scan.id)
+        await self.emit(scan_id, "module_start", "Starting quantum cryptographic analysis.",
                        agent="QuantumEngine", tool="quantum_crypto_discovery", target=target_url, state="EXECUTE")
         scan.total_tests = (scan.total_tests or 0) + 4
         findings = []
@@ -466,8 +474,8 @@ class ScanOrchestrator:
         try:
             # Crypto discovery
             assets = await run_crypto_discovery(
-                target_url, scope, self.policy, scan.id,
-                event_callback=lambda etype, msg: self.emit(scan.id, etype, msg, agent="QuantumEngine", state="EXECUTE")
+                target_url, scope, self.policy, scan_id,
+                event_callback=lambda etype, msg: self.emit(scan_id, etype, msg, agent="QuantumEngine", state="EXECUTE")
             )
             crypto_assets = assets
 
@@ -476,7 +484,7 @@ class ScanOrchestrator:
                 if asset.quantum_attack == "shor":
                     assessment = assess_shor_threat(asset.algorithm, asset.key_size)
                     await self.emit(
-                        scan.id, "quantum_assessment",
+                        scan_id, "quantum_assessment",
                         f"Shor analysis: {asset.algorithm} — Shor applicable: {assessment.shor_applicable}, Currently breakable: {assessment.current_practical_break}",
                         agent="QuantumEngine", state="EXECUTE"
                     )
@@ -509,7 +517,7 @@ class ScanOrchestrator:
                 elif asset.quantum_attack == "grover":
                     grover_assess = assess_grover_threat(asset.algorithm, asset.key_size)
                     await self.emit(
-                        scan.id, "quantum_assessment",
+                        scan_id, "quantum_assessment",
                         f"Grover analysis: {asset.algorithm} — Effective quantum security: {grover_assess.effective_quantum_security_bits} bits",
                         agent="QuantumEngine", state="EXECUTE"
                     )
@@ -531,12 +539,12 @@ class ScanOrchestrator:
                             "finding_type": "QUANTUM",
                         })
 
-            await self.emit(scan.id, "quantum_complete",
+            await self.emit(scan_id, "quantum_complete",
                            f"Quantum analysis complete: {len(assets)} crypto assets, {len(findings)} quantum findings.",
                            agent="QuantumEngine", state="OBSERVE_RESULT")
 
         except Exception as e:
-            await self.emit(scan.id, "module_error", f"Quantum module failed: {e}", state="EXECUTE")
+            await self.emit(scan_id, "module_error", f"Quantum module failed: {e}", state="EXECUTE")
 
         return {"findings": findings, "crypto_assets": crypto_assets}
 
@@ -603,12 +611,12 @@ class ScanOrchestrator:
             logger.error(f"Finding creation error: {e}")
             return None
 
-    async def _generate_remediation(self, finding: Finding):
+    async def _generate_remediation(self, finding: Any):
         """Generate and store remediation for a finding."""
         try:
             rem_data = generate_remediation(
-                finding.category,
-                finding.endpoint or "",
+                str(finding.category),
+                str(finding.endpoint or ""),
                 llm_available=llm_provider.available,
             )
             rem = Remediation(
@@ -625,7 +633,7 @@ class ScanOrchestrator:
         except Exception as e:
             logger.error(f"Remediation generation error: {e}")
 
-    async def _update_scan_status(self, scan: Scan, status: ScanStatus,
+    async def _update_scan_status(self, scan: Any, status: ScanStatus,
                                   state: str = "", error: str = ""):
         try:
             scan.status = status
