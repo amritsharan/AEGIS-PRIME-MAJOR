@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 import httpx
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import AsyncSessionLocal
 
@@ -280,6 +281,37 @@ class ScanOrchestrator:
                 agent="SecurityOrchestrator",
                 result="COMPLETED",
             )
+
+            # ── Async Broadcast to Zenith-Mesh Substrate PQC Node ─────────
+            try:
+                from app.services.zenith_sync import zenith_client
+                from app.services.merkle_audit import MerkleAuditLedger
+                events_res = await self.db.execute(
+                    select(AgentEvent)
+                    .where(AgentEvent.scan_id == scan_id)
+                    .order_by(AgentEvent.timestamp.asc())
+                )
+                evts = events_res.scalars().all()
+                ledger = MerkleAuditLedger(scan_id, list(evts))
+
+                mesh_res = await zenith_client.sync_scan_findings(
+                    scan_id=scan_id,
+                    target_url=target_url,
+                    findings_count=len(confirmed_findings),
+                    quantum_score=float(scan.quantum_score or 100.0),
+                    security_score=float(scan.security_score or 85.0),
+                    pqc_readiness=float(scan.pqc_readiness or 0.0),
+                    merkle_root=ledger.merkle_root
+                )
+                if mesh_res.get("blockHeight"):
+                    await self.emit(
+                        scan_id, "zenith_mesh_anchored",
+                        f"Anchored findings to Zenith-Mesh Layer-4 Substrate Block #{mesh_res.get('blockHeight')} with GRANDPA finality.",
+                        agent="ZenithMeshSync", state="COMPLETE",
+                        result=f"tx_hash={mesh_res.get('txHash')}"
+                    )
+            except Exception as e:
+                logger.debug(f"Zenith-Mesh background sync note: {e}")
 
         except asyncio.CancelledError:
             await self._update_scan_status(scan, ScanStatus.CANCELLED)

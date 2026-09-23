@@ -43,6 +43,7 @@ export const scansApi = {
   getMerkleAudit: (id: string) => api.get(`/api/scans/${id}/merkle-audit`).then(r => r.data),
   verifyMerkleProof: (id: string, data: { event_hash: string; proof_path: any[]; expected_root: string }) =>
     api.post(`/api/scans/${id}/merkle-audit/verify`, data).then(r => r.data),
+  syncZenith: (id: string) => api.post(`/api/scans/${id}/sync-zenith`).then(r => r.data),
   cancel: (id: string) => api.post(`/api/scans/${id}/cancel`).then(r => r.data),
 }
 

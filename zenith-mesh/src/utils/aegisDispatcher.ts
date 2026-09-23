@@ -212,16 +212,18 @@ export async function executeAegisPipeline(data: AegisPayload): Promise<Pipeline
 }
 
 /**
- * Diagnostic ping helper to verify cluster connectivity across ports 9200, 9300, 9944
+ * Diagnostic ping helper to verify cluster connectivity across ports 9200, 9300, 9944, and 8000
  */
 export async function probeClusterConnectivity(): Promise<{
   cypherShield: { online: boolean; port: number; details?: any };
   synapseOS: { online: boolean; port: number; details?: any };
   zenithMesh: { online: boolean; port: number; details?: any };
+  quantumShieldAgent: { online: boolean; port: number; details?: any };
 }> {
   const CYPHER_URL = 'http://127.0.0.1:9200';
   const SYNAPSE_URL = 'http://127.0.0.1:9300';
   const ZENITH_URL = 'http://127.0.0.1:9944';
+  const AGENT_URL = 'http://127.0.0.1:8000/health';
 
   const check = async (url: string) => {
     try {
@@ -235,15 +237,17 @@ export async function probeClusterConnectivity(): Promise<{
     }
   };
 
-  const [cRes, sRes, zRes] = await Promise.all([
+  const [cRes, sRes, zRes, aRes] = await Promise.all([
     check(CYPHER_URL),
     check(SYNAPSE_URL),
-    check(ZENITH_URL)
+    check(ZENITH_URL),
+    check(AGENT_URL)
   ]);
 
   return {
     cypherShield: { online: cRes.online, port: 9200, details: cRes.details },
     synapseOS: { online: sRes.online, port: 9300, details: sRes.details },
-    zenithMesh: { online: zRes.online, port: 9944, details: zRes.details }
+    zenithMesh: { online: zRes.online, port: 9944, details: zRes.details },
+    quantumShieldAgent: { online: aRes.online, port: 8000, details: aRes.details }
   };
 }

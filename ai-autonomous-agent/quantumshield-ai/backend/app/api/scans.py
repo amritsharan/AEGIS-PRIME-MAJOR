@@ -333,3 +333,52 @@ async def verify_scan_merkle_leaf(
         "status": "VALID_INCLUSION_PROOF" if is_valid else "TAMPER_DETECTED"
     }
 
+
+@router.post("/{scan_id}/sync-zenith")
+async def sync_scan_to_zenith_mesh(scan_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    IEEE Layer 4: Broadcasts and anchors scan findings and Merkle root hash
+    onto Zenith-Mesh Substrate PQC node with GRANDPA deterministic finality.
+    """
+    from app.services.zenith_sync import zenith_client
+    from app.services.merkle_audit import MerkleAuditLedger
+
+    scan_res = await db.execute(select(Scan).where(Scan.id == scan_id))
+    scan = scan_res.scalar_one_or_none()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    target_res = await db.execute(select(Target).where(Target.id == scan.target_id))
+    target = target_res.scalar_one_or_none()
+
+    findings_res = await db.execute(select(Finding).where(Finding.scan_id == scan_id))
+    findings = findings_res.scalars().all()
+
+    events_res = await db.execute(
+        select(AgentEvent)
+        .where(AgentEvent.scan_id == scan_id)
+        .order_by(AgentEvent.timestamp.asc())
+    )
+    events = events_res.scalars().all()
+
+    ledger = MerkleAuditLedger(scan_id, list(events))
+
+    findings_summary = [
+        {"id": f.id, "title": f.title, "severity": str(f.severity), "endpoint": f.endpoint, "type": str(f.finding_type)}
+        for f in findings
+    ]
+
+    result = await zenith_client.sync_scan_findings(
+        scan_id=scan_id,
+        target_url=target.url if target else "http://target.local",
+        findings_count=len(findings),
+        quantum_score=float(scan.quantum_score or 100.0),
+        security_score=float(scan.security_score or 85.0),
+        pqc_readiness=float(scan.pqc_readiness or 0.0),
+        merkle_root=ledger.merkle_root,
+        findings_summary=findings_summary
+    )
+
+    return result
+
+

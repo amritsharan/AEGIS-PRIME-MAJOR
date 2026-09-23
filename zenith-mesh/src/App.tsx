@@ -70,10 +70,12 @@ function App() {
     cypherShield: { online: boolean; port: number; details?: any };
     synapseOS: { online: boolean; port: number; details?: any };
     zenithMesh: { online: boolean; port: number; details?: any };
+    quantumShieldAgent: { online: boolean; port: number; details?: any };
   }>({
     cypherShield: { online: false, port: 9200 },
     synapseOS: { online: false, port: 9300 },
-    zenithMesh: { online: false, port: 9944 }
+    zenithMesh: { online: false, port: 9944 },
+    quantumShieldAgent: { online: false, port: 8000 }
   });
   const [liveHeaderRpc, setLiveHeaderRpc] = useState<any>(null);
   const [canaryTripMsg, setCanaryTripMsg] = useState<string | null>(null);
@@ -1046,6 +1048,40 @@ verifyZenithMeshBlockchain(blockchainData);
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     JSON-RPC Ledger
+                  </span>
+                </div>
+              </div>
+              {/* Shield 1 */}
+              <div
+                onClick={() => window.open('http://localhost:3000', '_blank')}
+                title="Click to Open QuantumShield AI Autonomous Agent"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: clusterStatus.quantumShieldAgent?.online ? '1px solid rgba(0, 240, 255, 0.5)' : '1px solid rgba(255, 170, 0, 0.3)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: clusterStatus.quantumShieldAgent?.online ? '0 0 15px rgba(0, 240, 255, 0.1)' : 'none'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#00f0ff')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = clusterStatus.quantumShieldAgent?.online ? 'rgba(0, 240, 255, 0.5)' : 'rgba(255, 170, 0, 0.3)')}
+              >
+                <div className="flex justify-between items-center" style={{ marginBottom: '0.4rem' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>🤖 Shield 1: QuantumShield AI</span>
+                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: clusterStatus.quantumShieldAgent?.online ? 'rgba(0,255,128,0.2)' : 'rgba(255,170,0,0.2)', color: clusterStatus.quantumShieldAgent?.online ? '#00ff80' : '#ffaa00' }}>
+                    {clusterStatus.quantumShieldAgent?.online ? 'ACTIVE' : 'STANDBY / MOCK'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+                  Autonomous PQC Security Agent & Merkle-Chained Ledger
+                </p>
+                <div className="flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#00f0ff', fontWeight: 600 }}>
+                    🚀 Launch Autonomous Agent ↗
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Port 8000 / 3000
                   </span>
                 </div>
               </div>

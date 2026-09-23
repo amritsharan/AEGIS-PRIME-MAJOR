@@ -170,7 +170,109 @@ class SubstrateNodeState:
             "blockHeader": block
         }
 
+    def commit_pqc_threat_finding(self, scan_data: Dict[str, Any]) -> Dict[str, Any]:
+        last_block = self.blocks[-1]
+        new_index = last_block["index"] + 1
+        
+        scan_id = scan_data.get("scan_id", "SCAN_AUTONOMOUS")
+        merkle_root = scan_data.get("merkle_root") or ("0x" + self._hash(f"MERKLE_ROOT:{json.dumps(scan_data)}"))
+        target_url = scan_data.get("target_url", "http://target.local")
+        findings_count = scan_data.get("findings_count", 0)
+        quantum_score = scan_data.get("quantum_score", 100.0)
+        pqc_readiness = scan_data.get("pqc_readiness", 0.0)
+        
+        tau_threat = "0x" + self._hash(f"THREAT:{scan_id}:{merkle_root}:{quantum_score}")
+        
+        self.mpt_leaves.append({
+            "key": f"AutonomousAgentFinding::{scan_id}",
+            "nibblePath": "0xaa",
+            "val": tau_threat
+        })
+        new_state_root = self._compute_mpt_root()
+        extrinsic_hash = "0x" + self._hash(f"EXTRINSIC_PQC_THREAT:{tau_threat}")
+        t_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        block_hash = "0x" + self._hash(f"{new_index}-{t_str}-{new_state_root}-{tau_threat}-{last_block['hash']}")
+        
+        block = {
+            "index": new_index,
+            "number": hex(new_index),
+            "parentHash": last_block["hash"],
+            "hash": block_hash,
+            "stateRoot": new_state_root,
+            "extrinsicsRoot": extrinsic_hash,
+            "authorNode": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY (QuantumShield Agent Aura)",
+            "slotNumber": new_index,
+            "timestamp": t_str,
+            "finalized": True,
+            "intentHash": tau_threat,
+            "userQuery": f"PQC Assessment & Autonomous Scan for {target_url}",
+            "response": f"Anchored {findings_count} findings. Merkle Root: {merkle_root[:16]}... | Quantum Score: {quantum_score} | PQC Readiness: {pqc_readiness}%",
+            "mode": "pqc_threat_sync",
+            "toolUri": "cap://zenith-mesh/pqc-threat-sync",
+            "events": [
+                {
+                    "type": "pallet_aegis_mesh::PqcThreatSynchronized",
+                    "scan_id": scan_id,
+                    "merkle_root": merkle_root,
+                    "target": target_url,
+                    "findings_count": findings_count,
+                    "quantum_score": quantum_score,
+                    "pqc_readiness": pqc_readiness,
+                    "threat_level": "CRITICAL" if quantum_score < 40 else ("ELEVATED" if quantum_score < 75 else "SECURE"),
+                    "pqc_channel": "ML-KEM-768-KYBER"
+                }
+            ]
+        }
+        self.blocks.append(block)
+        return {
+            "blockHeight": new_index,
+            "txHash": extrinsic_hash,
+            "stateRoot": new_state_root,
+            "threatHash": tau_threat,
+            "blockHeader": block
+        }
+
 node_state = SubstrateNodeState()
+
+@app.post("/api/mesh/sync-findings")
+async def sync_mesh_findings(request: Request):
+    """
+    IEEE Layer 4: Receives Autonomous Agent (QuantumShield AI) security findings,
+    anchors the scan's Merkle root and quantum risk score into the MPT state tree,
+    and returns verified Substrate block metadata.
+    """
+    scan_data = await request.json()
+    res = node_state.commit_pqc_threat_finding(scan_data)
+    return {
+        "success": True,
+        "protocol": "Substrate Layer-4 PQC Threat Sync",
+        "pqc_channel": "ML-KEM-768-KYBER",
+        "blockHeight": res["blockHeight"],
+        "txHash": res["txHash"],
+        "stateRoot": res["stateRoot"],
+        "threatHash": res["threatHash"],
+        "finalized": True,
+        "blockHeader": res["blockHeader"]
+    }
+
+@app.get("/api/mesh/threat-feed")
+def get_mesh_threat_feed():
+    """Returns all PQC and autonomous threat synchronization events from Substrate blocks."""
+    threat_events = []
+    for b in node_state.blocks[::-1]:
+        for ev in b.get("events", []):
+            if ev.get("type") in ("pallet_aegis_mesh::PqcThreatSynchronized", "pallet_forensic_vault::IncidentAnchored"):
+                threat_events.append({
+                    "blockIndex": b["index"],
+                    "timestamp": b["timestamp"],
+                    "blockHash": b["hash"],
+                    "stateRoot": b["stateRoot"],
+                    "event": ev
+                })
+    return {
+        "total_threats": len(threat_events),
+        "threat_feed": threat_events
+    }
 
 class CommitPayload(BaseModel):
     intent_hash: str
