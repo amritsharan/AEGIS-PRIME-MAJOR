@@ -948,7 +948,7 @@ verifyZenithMeshBlockchain(blockchainData);
               {/* Shield 3 */}
               <div
                 onClick={() => window.open('http://localhost:5175', '_blank')}
-                title="Click to Open Cypher-Shield UI"
+                title="Click to Open Cypher-Shield"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   padding: '1rem',
@@ -972,7 +972,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 </p>
                 <div className="flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
                   <span style={{ fontSize: '0.75rem', color: '#00ff80', fontWeight: 600 }}>
-                    🚀 Launch Cypher-Shield UI ↗
+                    🚀 Launch Cypher-Shield ↗
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     Backend Online
@@ -983,7 +983,7 @@ verifyZenithMeshBlockchain(blockchainData);
               {/* Shield 2 */}
               <div
                 onClick={() => window.open('http://localhost:5173', '_blank')}
-                title="Click to Open Synapse-OS UI"
+                title="Click to Open Synapse OS"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   padding: '1rem',
@@ -1007,7 +1007,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 </p>
                 <div className="flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
                   <span style={{ fontSize: '0.75rem', color: '#00f0ff', fontWeight: 600 }}>
-                    🚀 Launch Synapse-OS UI ↗
+                    🚀 Launch Synapse OS ↗
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     vfs://synapse/sandbox
