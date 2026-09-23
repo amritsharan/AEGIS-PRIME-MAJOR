@@ -59,6 +59,11 @@ AEGIS-PRIME-MAJOR/
 │   ├── client/               # Blockchain Block Explorer & User Data Inspector
 │   └── node/                 # Rust / Python Substrate Micro-Runtime
 │
+├── ai-autonomous-agent/      # Autonomous Classical & Quantum Security Scanner (Port 8000 & 3000)
+│   └── quantumshield-ai/     # Dual-Engine Security Scanner, Quantum Circuit Runner & UI
+│       ├── backend/          # FastAPI Engine (Port 8000)
+│       └── frontend/         # React + Vite Security Dashboard (Port 3000)
+│
 ├── start_aegis_prime.ps1     # One-Click Unified Bootstrap Script (PowerShell)
 ├── start_aegis_prime.bat     # Windows Batch Runner
 ├── test_integration.py       # End-to-End AEGIS Bus Integration & Latency Prover
@@ -79,6 +84,7 @@ Run the automated unified startup launcher:
 - **Synapse-OS Dashboard**: `http://localhost:5173`
 - **Cypher-Shield PQC Engine**: `http://localhost:5175` (Backend API: `http://localhost:9200`)
 - **Zenith-Mesh Substrate Explorer**: `http://localhost:5176` (RPC Node: `http://localhost:9944`)
+- **Autonomous Agent Dashboard**: `http://localhost:3000` (Backend API: `http://localhost:8000`)
 
 ---
 

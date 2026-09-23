@@ -11,6 +11,7 @@ import {
   Network,
   Shield,
   Layers,
+  Bot,
   LogOut
 } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export default function Dock({
 }) {
   const [cypherBackendOnline, setCypherBackendOnline] = useState(true);
   const [zenithBackendOnline, setZenithBackendOnline] = useState(true);
+  const [agentBackendOnline, setAgentBackendOnline] = useState(true);
 
   useEffect(() => {
     const probeBackends = async () => {
@@ -50,6 +52,13 @@ export default function Dock({
         setZenithBackendOnline(!!zRes);
       } catch {
         setZenithBackendOnline(true);
+      }
+
+      try {
+        const aRes = await fetch('http://127.0.0.1:8000/health', { mode: 'no-cors' }).catch(() => null);
+        setAgentBackendOnline(!!aRes);
+      } catch {
+        setAgentBackendOnline(true);
       }
     };
 
@@ -171,6 +180,19 @@ export default function Dock({
       activeColor: 'text-emerald-600',
       badge: zenithBackendOnline ? 'Mesh:9944 Active' : 'Port 5176',
       onClick: () => window.open('http://localhost:5176', '_blank'),
+      isActive: false
+    },
+    {
+      id: 'autonomous-agent',
+      label: agentBackendOnline ? 'Autonomous Agent' : 'Autonomous Agent UI',
+      description: agentBackendOnline 
+        ? 'QuantumShield AI Security Scanner (Backend :8000 Active)' 
+        : 'Autonomous Security Platform (Port 3000)',
+      icon: Bot,
+      color: 'text-slate-700',
+      activeColor: 'text-purple-600',
+      badge: agentBackendOnline ? 'Agent:8000 Active' : 'Port 3000',
+      onClick: () => window.open('http://localhost:3000', '_blank'),
       isActive: false
     },
     {
