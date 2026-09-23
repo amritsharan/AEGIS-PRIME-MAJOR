@@ -7,7 +7,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 import httpx
@@ -56,12 +56,12 @@ class ScanOrchestrator:
     async def emit(self, scan_id: str, event_type: str, message: str,
                    agent: str = "SecurityOrchestrator", reason: str = "",
                    tool: str = "", target: str = "", result: str = "",
-                   decision: str = "", state: str = "", metadata: dict = None):
+                   decision: str = "", state: str = "", metadata: Optional[dict] = None):
         """Emit a scan event to the database and WebSocket clients."""
         logger.info(f"[SCAN:{scan_id}] [{state}] {message}")
         try:
             event = AgentEvent(
-                scan_id=scan_id,
+                scan_id=str(scan_id),
                 event_type=event_type,
                 agent=agent,
                 message=message,
@@ -72,7 +72,7 @@ class ScanOrchestrator:
                 decision=decision or "",
                 state=state or "",
                 extra_metadata=json.dumps(metadata or {}),
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
             async with AsyncSessionLocal() as session:
                 session.add(event)
@@ -81,12 +81,12 @@ class ScanOrchestrator:
             if self.event_callback:
                 await self.event_callback({
                     "type": "agent_event",
-                    "scan_id": scan_id,
+                    "scan_id": str(scan_id),
                     "event_type": event_type,
                     "agent": agent,
                     "message": message,
                     "state": state,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
         except Exception as e:
             logger.error(f"Event emission error: {e}")
@@ -95,7 +95,7 @@ class ScanOrchestrator:
         """
         Main scan entry point. Runs the complete security assessment.
         """
-        scan_id = scan.id
+        scan_id = str(scan.id)
         target_url = scope.target
         findings_created = []
         crypto_assets_created = []
@@ -265,7 +265,7 @@ class ScanOrchestrator:
 
             # ── Finalize ──────────────────────────────────────────────────
             scan.status = ScanStatus.COMPLETED
-            scan.completed_at = datetime.utcnow()
+            scan.completed_at = datetime.now(timezone.utc)
             scan.current_state = "COMPLETE"
             scan.completed_tests = scan.total_tests
             await self.db.commit()
@@ -573,7 +573,7 @@ class ScanOrchestrator:
                 description=raw.get("description", ""),
                 risk_score=risk_score,
                 status=FindingStatus.CONFIRMED,
-                last_verified=datetime.utcnow(),
+                last_verified=datetime.now(timezone.utc),
             )
             self.db.add(finding)
             await self.db.flush()  # Get the ID
@@ -634,7 +634,7 @@ class ScanOrchestrator:
             if error:
                 scan.error_message = error[:1000]
             if status == ScanStatus.RUNNING and not scan.started_at:
-                scan.started_at = datetime.utcnow()
+                scan.started_at = datetime.now(timezone.utc)
             await self.db.commit()
         except Exception as e:
             logger.error(f"Scan status update error: {e}")

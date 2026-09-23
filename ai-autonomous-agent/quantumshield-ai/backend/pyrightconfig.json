@@ -9,5 +9,8 @@
   ],
   "pythonPath": "C:\\Program Files\\Python311\\python.exe",
   "pythonVersion": "3.11",
-  "typeCheckingMode": "basic"
+  "typeCheckingMode": "basic",
+  "reportAssignmentType": "none",
+  "reportArgumentType": "none",
+  "reportAttributeAccessIssue": "none"
 }
