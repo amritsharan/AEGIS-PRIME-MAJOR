@@ -948,7 +948,7 @@ verifyZenithMeshBlockchain(blockchainData);
               {/* Shield 3 */}
               <div
                 onClick={() => window.open('http://localhost:5175', '_blank')}
-                title="Click to Open Cypher-Shield UI (:5175)"
+                title="Click to Open Cypher-Shield UI"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   padding: '1rem',
@@ -964,7 +964,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 <div className="flex justify-between items-center" style={{ marginBottom: '0.4rem' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>🛡️ Shield 3: Cypher-Shield</span>
                   <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: clusterStatus.cypherShield.online ? 'rgba(0,255,128,0.2)' : 'rgba(255,170,0,0.2)', color: clusterStatus.cypherShield.online ? '#00ff80' : '#ffaa00' }}>
-                    {clusterStatus.cypherShield.online ? 'PORT 9200 ACTIVE' : 'PORT 9200 (STANDBY / MOCK)'}
+                    {clusterStatus.cypherShield.online ? 'ACTIVE' : 'STANDBY / MOCK'}
                   </span>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
@@ -972,10 +972,10 @@ verifyZenithMeshBlockchain(blockchainData);
                 </p>
                 <div className="flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
                   <span style={{ fontSize: '0.75rem', color: '#00ff80', fontWeight: 600 }}>
-                    🚀 Launch Cypher-Shield UI (Port 5175) ↗
+                    🚀 Launch Cypher-Shield UI ↗
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                    Backend :9200
+                    Backend Online
                   </span>
                 </div>
               </div>
@@ -983,7 +983,7 @@ verifyZenithMeshBlockchain(blockchainData);
               {/* Shield 2 */}
               <div
                 onClick={() => window.open('http://localhost:5173', '_blank')}
-                title="Click to Open Synapse-OS UI (:5173)"
+                title="Click to Open Synapse-OS UI"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   padding: '1rem',
@@ -999,7 +999,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 <div className="flex justify-between items-center" style={{ marginBottom: '0.4rem' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>⚡ Shield 2: Synapse-OS</span>
                   <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: clusterStatus.synapseOS.online ? 'rgba(0,240,255,0.2)' : 'rgba(255,170,0,0.2)', color: clusterStatus.synapseOS.online ? '#00f0ff' : '#ffaa00' }}>
-                    {clusterStatus.synapseOS.online ? 'PORT 9300 ACTIVE' : 'PORT 9300 (STANDBY / MOCK)'}
+                    {clusterStatus.synapseOS.online ? 'ACTIVE' : 'STANDBY / MOCK'}
                   </span>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
@@ -1007,7 +1007,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 </p>
                 <div className="flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
                   <span style={{ fontSize: '0.75rem', color: '#00f0ff', fontWeight: 600 }}>
-                    🚀 Launch Synapse-OS UI (Port 5173) ↗
+                    🚀 Launch Synapse-OS UI ↗
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     vfs://synapse/sandbox
@@ -1034,7 +1034,7 @@ verifyZenithMeshBlockchain(blockchainData);
                 <div className="flex justify-between items-center" style={{ marginBottom: '0.4rem' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>🌌 Shield 4: Zenith-Mesh</span>
                   <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: clusterStatus.zenithMesh.online ? 'rgba(142,45,226,0.2)' : 'rgba(255,170,0,0.2)', color: clusterStatus.zenithMesh.online ? '#c084fc' : '#ffaa00' }}>
-                    {clusterStatus.zenithMesh.online ? 'PORT 9944 ACTIVE' : 'PORT 9944 (STANDBY / MOCK)'}
+                    {clusterStatus.zenithMesh.online ? 'ACTIVE' : 'STANDBY / MOCK'}
                   </span>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
@@ -1045,7 +1045,7 @@ verifyZenithMeshBlockchain(blockchainData);
                     📜 View Ledger State ↗
                   </span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                    JSON-RPC :9944
+                    JSON-RPC Ledger
                   </span>
                 </div>
               </div>
