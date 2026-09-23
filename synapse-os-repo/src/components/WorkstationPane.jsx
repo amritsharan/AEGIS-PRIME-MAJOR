@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PRESET_SCENARIOS } from '../data/presetScenarios';
+import WasmContainerRunner from './WasmContainerRunner';
+import MacaroonInspector from './MacaroonInspector';
 import { 
   Play, 
   RotateCcw, 
@@ -11,7 +13,9 @@ import {
   Cpu, 
   BrainCircuit, 
   Key, 
-  Zap 
+  Zap,
+  Code2,
+  Lock
 } from 'lucide-react';
 
 export default function WorkstationPane({ 
@@ -20,6 +24,7 @@ export default function WorkstationPane({
   capabilityTtl, 
   onTriggerKillSwitch 
 }) {
+  const [workstationMode, setWorkstationMode] = useState('stream'); // 'stream' | 'wasm_runtime' | 'macaroons'
   const [selectedPresetId, setSelectedPresetId] = useState('biochemical-safe');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -92,12 +97,55 @@ export default function WorkstationPane({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 max-w-7xl mx-auto w-full">
-      {/* LEFT PANE: Ingress Prompt & Capability Control Console */}
-      <div className="lg:col-span-5 flex flex-col gap-5">
-        <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <h2 className="text-sm font-bold font-mono text-cyan-400 flex items-center gap-2">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-6">
+      {/* Top Workstation Mode Switcher */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-900/80 border border-slate-800 rounded-xl max-w-fit">
+        <button
+          onClick={() => setWorkstationMode('stream')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-semibold transition ${
+            workstationMode === 'stream'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5" /> Neural Stream Console
+        </button>
+
+        <button
+          onClick={() => setWorkstationMode('wasm_runtime')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-semibold transition ${
+            workstationMode === 'wasm_runtime'
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Code2 className="w-3.5 h-3.5" /> WebContainer / WASM Micro-Runtime
+        </button>
+
+        <button
+          onClick={() => setWorkstationMode('macaroons')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-semibold transition ${
+            workstationMode === 'macaroons'
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Lock className="w-3.5 h-3.5" /> Dynamic Macaroons (Capabilities)
+        </button>
+      </div>
+
+      {/* Conditional Content Rendering */}
+      {workstationMode === 'wasm_runtime' ? (
+        <WasmContainerRunner />
+      ) : workstationMode === 'macaroons' ? (
+        <MacaroonInspector />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+          {/* LEFT PANE: Ingress Prompt & Capability Control Console */}
+          <div className="lg:col-span-5 flex flex-col gap-5">
+            <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <h2 className="text-sm font-bold font-mono text-cyan-400 flex items-center gap-2">
               <Terminal className="w-4 h-4 text-cyan-400" />
               INGRESS PROMPT CONSOLE
             </h2>
@@ -332,6 +380,7 @@ export default function WorkstationPane({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

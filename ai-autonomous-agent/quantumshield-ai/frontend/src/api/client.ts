@@ -44,6 +44,8 @@ export const scansApi = {
   verifyMerkleProof: (id: string, data: { event_hash: string; proof_path: any[]; expected_root: string }) =>
     api.post(`/api/scans/${id}/merkle-audit/verify`, data).then(r => r.data),
   syncZenith: (id: string) => api.post(`/api/scans/${id}/sync-zenith`).then(r => r.data),
+  generateZkComplianceProof: (id: string) => api.post(`/api/scans/${id}/zk-compliance-proof`).then(r => r.data),
+  verifyZkComplianceProof: (id: string, proofRecord: any) => api.post(`/api/scans/${id}/zk-compliance-verify`, proofRecord).then(r => r.data),
   cancel: (id: string) => api.post(`/api/scans/${id}/cancel`).then(r => r.data),
 }
 

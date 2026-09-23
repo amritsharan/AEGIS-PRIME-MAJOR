@@ -14,9 +14,11 @@ import {
   Check,
   Copy,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  EyeOff
 } from 'lucide-react'
 import { scansApi } from '../api/client'
+import ZkAuditComplianceModal from './ZkAuditComplianceModal'
 
 interface LeafNode {
   index: number
@@ -50,6 +52,7 @@ export default function MerkleAuditInspector({ scanId }: { scanId: string }) {
   const [expandedLeaf, setExpandedLeaf] = useState<number | null>(null)
   const [copiedHash, setCopiedHash] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'chain' | 'tree'>('chain')
+  const [showZkModal, setShowZkModal] = useState(false)
 
   const fetchAudit = async () => {
     setLoading(true)
@@ -151,7 +154,15 @@ export default function MerkleAuditInspector({ scanId }: { scanId: string }) {
           </div>
 
           {/* Action Trigger */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowZkModal(true)}
+              className="px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 font-mono font-bold text-xs flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+            >
+              <EyeOff className="w-4 h-4 text-purple-400" />
+              <span>Generate ZK-Proof of Compliance</span>
+            </button>
+
             <button
               onClick={handleVerifyChain}
               disabled={verifying}
@@ -353,6 +364,14 @@ export default function MerkleAuditInspector({ scanId }: { scanId: string }) {
           ))}
         </div>
       )}
+
+      {/* ZK-Proof of Audit Compliance Modal */}
+      <ZkAuditComplianceModal
+        scanId={scanId}
+        merkleRoot={data.merkle_root}
+        isOpen={showZkModal}
+        onClose={() => setShowZkModal(false)}
+      />
     </div>
   )
 }

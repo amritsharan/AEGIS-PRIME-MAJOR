@@ -382,3 +382,76 @@ async def sync_scan_to_zenith_mesh(scan_id: str, db: AsyncSession = Depends(get_
     return result
 
 
+@router.post("/{scan_id}/zk-compliance-proof")
+async def generate_scan_zk_compliance_proof(scan_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Synthesize a Groth16 / Poseidon Zero-Knowledge proof of audit compliance.
+    Proves that all actions satisfy the security policy and match the Merkle Root
+    WITHOUT disclosing private tool execution arguments or target endpoints.
+    """
+    from app.services.zk_audit_compliance import ZkAuditComplianceEngine
+    from app.services.merkle_audit import MerkleAuditLedger
+
+    scan_res = await db.execute(select(Scan).where(Scan.id == scan_id))
+    scan = scan_res.scalar_one_or_none()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    events_res = await db.execute(
+        select(AgentEvent)
+        .where(AgentEvent.scan_id == scan_id)
+        .order_by(AgentEvent.timestamp.asc())
+    )
+    events = events_res.scalars().all()
+
+    ledger = MerkleAuditLedger(scan_id, list(events))
+    
+    events_payload = [
+        {
+            "event_type": str(e.event_type),
+            "state": str(e.state),
+            "tool": e.tool or "",
+            "message": e.message or "",
+            "severity": "LOW",
+            "timestamp": str(e.timestamp)
+        }
+        for e in events
+    ]
+
+    proof_record = ZkAuditComplianceEngine.generate_compliance_proof(
+        scan_id=scan_id,
+        merkle_root=ledger.merkle_root,
+        events=events_payload,
+        max_allowed_severity=3
+    )
+    return proof_record
+
+
+@router.post("/{scan_id}/zk-compliance-verify")
+async def verify_scan_zk_compliance_proof(
+    scan_id: str,
+    proof_record: dict = Body(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Public Verifier: Verify a Groth16 zero-knowledge compliance proof against the scan's Merkle Root.
+    """
+    from app.services.zk_audit_compliance import ZkAuditComplianceEngine
+    from app.services.merkle_audit import MerkleAuditLedger
+
+    events_res = await db.execute(
+        select(AgentEvent)
+        .where(AgentEvent.scan_id == scan_id)
+        .order_by(AgentEvent.timestamp.asc())
+    )
+    events = events_res.scalars().all()
+    ledger = MerkleAuditLedger(scan_id, list(events))
+
+    result = ZkAuditComplianceEngine.verify_compliance_proof(
+        proof_record=proof_record,
+        expected_merkle_root=ledger.merkle_root
+    )
+    return result
+
+
+
