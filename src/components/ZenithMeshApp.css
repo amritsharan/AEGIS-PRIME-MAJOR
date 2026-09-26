@@ -21,13 +21,14 @@
 }
 
   /* Glassmorphism Classes */
+  .zenith-mesh-root .glass-panel,
   .glass-panel {
-    background: var(--bg-panel);
+    background: rgba(13, 17, 26, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   }
 
   /* Typography Enhancements */

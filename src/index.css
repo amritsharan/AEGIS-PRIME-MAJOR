@@ -283,27 +283,48 @@ body {
   color: #111827;
 }
 
-/* Light Frosted Glassmorphism Panel from AEGIS-PRIME-MAJOR */
+/* Frosted Glassmorphism Panel - Defaults to dark cyber-glass matching workspace background */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(13, 17, 26, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel-glow {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  box-shadow: 0 10px 30px -5px rgba(6, 182, 212, 0.25);
+}
+
+.glass-dock {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.5);
+}
+
+.light-theme .glass-panel,
+body.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
 }
 
-.glass-panel-glow {
+.light-theme .glass-panel-glow,
+body.light-theme .glass-panel-glow {
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(6, 182, 212, 0.35);
   box-shadow: 0 10px 30px -5px rgba(6, 182, 212, 0.15);
 }
 
-.glass-dock {
+.light-theme .glass-dock,
+body.light-theme .glass-dock {
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(226, 232, 240, 0.95);
   box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.12);
 }
