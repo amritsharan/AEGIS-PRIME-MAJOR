@@ -11,24 +11,12 @@
   --border-glow: rgba(0, 240, 255, 0.3);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-.zenith-mesh-root {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(142, 45, 226, 0.05) 0%, transparent 50%);
-}
-
-h1, h2, h3, h4, h5, h6 {
+.zenith-mesh-root h1,
+.zenith-mesh-root h2,
+.zenith-mesh-root h3,
+.zenith-mesh-root h4,
+.zenith-mesh-root h5,
+.zenith-mesh-root h6 {
   font-family: 'Outfit', sans-serif;
 }
 
@@ -120,8 +108,8 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 15px var(--border-glow);
   }
 
-  /* Button Core & Cyber-Glass Styling */
-  button {
+  /* Button Core & Cyber-Glass Styling - Scoped to ZenithMesh */
+  .zenith-mesh-root button {
     font-family: 'Outfit', sans-serif;
     background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(142, 45, 226, 0.12));
     border: 1px solid rgba(0, 240, 255, 0.35);
@@ -133,14 +121,14 @@ h1, h2, h3, h4, h5, h6 {
     outline: none;
   }
 
-  button:hover {
+  .zenith-mesh-root button:hover {
     background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(142, 45, 226, 0.25));
     border-color: var(--accent-cyan);
     box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
     transform: translateY(-1px);
   }
 
-  button:active {
+  .zenith-mesh-root button:active {
     transform: translateY(0);
   }
 
