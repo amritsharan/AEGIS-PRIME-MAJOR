@@ -186,21 +186,30 @@ export default function SynapseOS({
       {/* View: Cypher-Shield Studio (Layer 3 PQC NIST ML-KEM-768 Engine) */}
       {activeView === 'cypher-shield' && (
         <div className="pl-16 sm:pl-20 min-h-screen bg-slate-950">
-          <CypherShieldStudio onBack={() => setActiveView('new-chat')} />
+          <CypherShieldStudio
+            onBack={() => setActiveView('new-chat')}
+            onNavigate={(view: string) => setActiveView(view)}
+          />
         </div>
       )}
 
       {/* View: Zenith-Mesh Studio (Layer 4 Substrate Proof-of-Agency Node) */}
       {activeView === 'zenith-mesh' && (
         <div className="pl-16 sm:pl-20 min-h-screen bg-[#0a0a0c]">
-          <ZenithMeshStudio onBack={() => setActiveView('new-chat')} />
+          <ZenithMeshStudio
+            onBack={() => setActiveView('new-chat')}
+            onNavigate={(view: string) => setActiveView(view)}
+          />
         </div>
       )}
 
       {/* View: QuantumShield AI Autonomous Agent Studio */}
       {activeView === 'autonomous-agent' && (
         <div className="pl-16 sm:pl-20 min-h-screen bg-slate-950">
-          <AutonomousAgentStudio onBack={() => setActiveView('new-chat')} />
+          <AutonomousAgentStudio
+            onBack={() => setActiveView('new-chat')}
+            onNavigate={(view: string) => setActiveView(view)}
+          />
         </div>
       )}
 

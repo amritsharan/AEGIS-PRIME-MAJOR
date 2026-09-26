@@ -56,7 +56,7 @@ interface FLNodeState {
   status: 'idle' | 'fine-tuning' | 'broadcasting' | 'aggregated';
 }
 
-function App({ onBack }: { onBack?: () => void } = {}) {
+function App({ onBack, onNavigate }: { onBack?: () => void; onNavigate?: (view: string) => void } = {}) {
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'dual_shield' | 'poa' | 'fl' | 'forensics' | 'codegen'>('dual_shield');
 
@@ -976,7 +976,7 @@ verifyZenithMeshBlockchain(blockchainData);
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
               {/* Shield 3 */}
               <div
-                onClick={() => window.open('http://localhost:5175', '_blank')}
+                onClick={() => onNavigate ? onNavigate('cypher-shield') : (onBack ? onBack() : null)}
                 title="Click to Open Cypher-Shield"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
@@ -1011,7 +1011,7 @@ verifyZenithMeshBlockchain(blockchainData);
 
               {/* Shield 2 */}
               <div
-                onClick={() => window.open('http://localhost:5173', '_blank')}
+                onClick={() => onNavigate ? onNavigate('new-chat') : (onBack ? onBack() : null)}
                 title="Click to Open Synapse OS"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
@@ -1080,7 +1080,7 @@ verifyZenithMeshBlockchain(blockchainData);
               </div>
               {/* Shield 1 */}
               <div
-                onClick={() => window.open('http://localhost:3000', '_blank')}
+                onClick={() => onNavigate ? onNavigate('autonomous-agent') : null}
                 title="Click to Open QuantumShield AI Autonomous Agent"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
