@@ -13,7 +13,7 @@ import {
 export type ModelId = string
 
 type Props = {
-  view: 'workspace' | 'forge'
+  view: 'workspace' | 'forge' | 'neo4j-graph' | 'admin-panel' | 'matrix'
   activeModel: string
   activeModelName: string
   onNewChat: () => void
@@ -21,6 +21,10 @@ type Props = {
   onModel: () => void
   onForge: () => void
   onAudit: () => void
+  onMeshFlow?: () => void
+  onNeo4jGraph?: () => void
+  onAdminPanel?: () => void
+  onMatrix?: () => void
   onSignOut: () => void
 }
 
@@ -42,6 +46,10 @@ export default function NavRail({
   onModel,
   onForge,
   onAudit,
+  onMeshFlow,
+  onNeo4jGraph,
+  onAdminPanel,
+  onMatrix,
   onSignOut,
 }: Props) {
   const [hovered, setHovered] = useState<string | null>(null)
@@ -74,18 +82,61 @@ export default function NavRail({
       onClick: onModel,
     },
     {
-      id: 'security',
-      icon: <IconShield width={18} height={18} />,
-      label: 'Security',
-      badge: 'ZK',
-      badgeTone: 'emerald',
-      sub: 'Lumina-Auth · ZK proofs',
+      id: 'neo4j-graph',
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+      ),
+      label: 'Neo4j Motion Graph',
+      badge: 'Mesh',
+      badgeTone: 'cyan',
+      sub: 'Neural Invariant Proof Graph',
+      onClick: onNeo4jGraph,
     },
     {
-      id: 'science',
-      icon: <IconFlask width={18} height={18} />,
-      label: 'Science Mode',
-      sub: 'Molecular synthesis tools',
+      id: 'admin-panel',
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      ),
+      label: 'Admin Transparency',
+      badge: 'Z3',
+      badgeTone: 'purple',
+      sub: 'LogicShield, WASI SFI, Decoy Grid',
+      onClick: onAdminPanel,
+    },
+    {
+      id: 'matrix',
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <line x1="3" y1="9" x2="21" y2="9" />
+          <line x1="3" y1="15" x2="21" y2="15" />
+          <line x1="9" y1="3" x2="9" y2="21" />
+          <line x1="15" y1="3" x2="15" y2="21" />
+        </svg>
+      ),
+      label: 'Comparison Matrix',
+      badge: 'Bench',
+      badgeTone: 'amber',
+      sub: '7 Architectural Comparison Vectors',
+      onClick: onMatrix,
+    },
+    {
+      id: 'security',
+      icon: <IconShield width={18} height={18} />,
+      label: 'Security & PQC',
+      badge: 'Flow',
+      badgeTone: 'emerald',
+      sub: 'Cypher & Zenith Mesh Flow',
+      onClick: onMeshFlow,
     },
     {
       id: 'forge',
@@ -109,7 +160,8 @@ export default function NavRail({
       id: 'network',
       icon: <IconNetwork width={18} height={18} />,
       label: 'Mesh Network',
-      sub: 'Node topology view',
+      sub: 'Node topology & flow',
+      onClick: onMeshFlow,
     },
   ]
 
@@ -143,11 +195,12 @@ export default function NavRail({
           )}
         </div>
 
-        <div className="my-1 h-px w-8 bg-[var(--color-hairline)]" />
-
         {items.map((item) => {
           const isActive =
             (item.id === 'forge' && view === 'forge') ||
+            (item.id === 'neo4j-graph' && view === 'neo4j-graph') ||
+            (item.id === 'admin-panel' && view === 'admin-panel') ||
+            (item.id === 'matrix' && view === 'matrix') ||
             (item.id === 'history' && view === 'workspace')
 
           const isScience = item.id === 'science'

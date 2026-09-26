@@ -44,6 +44,21 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/ollama/, ''),
         },
+        '/cypher': {
+          target: 'http://127.0.0.1:9200',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/cypher/, ''),
+        },
+        '/zenith': {
+          target: 'http://127.0.0.1:9944',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/zenith/, ''),
+        },
+        '/agent-api': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/agent-api/, ''),
+        },
       },
       watch: {
         ignored: [

@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Badge, Drawer, IconClose, IconExternal } from './ui'
+import { ZENITH_MESH_URL } from '../lib/aegisDispatcher'
 
-const EXTRINSICS = [
+const FALLBACK_EXTRINSICS = [
   {
     ts: '14:02:51',
     intent: '0x7f1a…c93b',
@@ -38,23 +40,80 @@ export default function AuditDrawer({
   open: boolean
   onClose: () => void
 }) {
+  const [liveBlocks, setLiveBlocks] = useState<any[]>([])
+  const [blockHeight, setBlockHeight] = useState<number>(4821)
+  const [merkleRoot, setMerkleRoot] = useState<string>('0x9b3e7c02a41f88d5e0177b9c3fa2e6104d55ab90…004f')
+  const [isLive, setIsLive] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+
+    let cancelled = false
+    async function loadData() {
+      try {
+        const [stateRes, blocksRes] = await Promise.all([
+          fetch(`${ZENITH_MESH_URL}/ledger/state`, { signal: AbortSignal.timeout(1500) }),
+          fetch(`${ZENITH_MESH_URL}/ledger/latest?limit=6`, { signal: AbortSignal.timeout(1500) }),
+        ])
+
+        if (stateRes.ok && blocksRes.ok && !cancelled) {
+          const stateData = await stateRes.json()
+          const blocksData = await blocksRes.json()
+          setBlockHeight(stateData.current_block ?? 1048)
+          if (blocksData.length > 0 && blocksData[0].merkleRoot) {
+            setMerkleRoot(blocksData[0].merkleRoot)
+          }
+          setLiveBlocks(blocksData)
+          setIsLive(true)
+        }
+      } catch {
+        if (!cancelled) setIsLive(false)
+      }
+    }
+
+    loadData()
+    const timer = setInterval(loadData, 4000)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [open])
+
+  const extrinsicsToRender = isLive && liveBlocks.length > 0
+    ? liveBlocks.map((b) => ({
+        ts: new Date(b.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        intent: b.intentDigest ? `${b.intentDigest.slice(0, 6)}…${b.intentDigest.slice(-4)}` : b.evidenceHash ? `${b.evidenceHash.slice(0, 6)}…` : '0x…',
+        tool: b.type === 'FORENSIC_INCIDENT' ? 'honey://breach' : 'poa://commit',
+        proof: b.txHash ? `${b.txHash.slice(0, 6)}…${b.txHash.slice(-4)}` : '0x…',
+        status: b.status === 'EVIDENCE_SEALED' ? 'Sealed' : 'Finalized',
+      }))
+    : FALLBACK_EXTRINSICS
+
   return (
     <Drawer open={open} onClose={onClose} width={560}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3 border-b border-[var(--color-hairline)] px-5 py-4">
         <div>
-          <h2 className="text-[16px] font-semibold tracking-tight text-[var(--color-ink)]">
-            Zenith-Mesh Proof-of-Agency Ledger
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[16px] font-semibold tracking-tight text-[var(--color-ink)]">
+              Zenith-Mesh Proof-of-Agency Ledger
+            </h2>
+            {isLive && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-semibold text-emerald-700 border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Node :9944 Live
+              </span>
+            )}
+          </div>
           <p className="mt-1 font-mono text-[11px] text-[var(--color-slate)]">
             Substrate node · block height{' '}
-            <span className="text-[var(--color-ink)]">#4,821</span>
+            <span className="text-[var(--color-ink)] font-bold">#{blockHeight}</span>
           </p>
         </div>
         <button
           onClick={onClose}
           aria-label="Close"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-slate)] transition hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-slate)] transition hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] cursor-pointer"
         >
           <IconClose width={16} height={16} />
         </button>
@@ -66,20 +125,23 @@ export default function AuditDrawer({
           <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-slate)]">
             Merkle-Patricia Trie · State Root
           </div>
-          <div className="mt-1.5 flex items-center gap-2 font-mono text-[13px] text-[var(--color-mono-ink)]">
-            0x9b3e7c02a41f88d5e0177b9c3fa2e6104d55ab90…004f
+          <div className="mt-1.5 flex items-center gap-2 font-mono text-[13px] text-[var(--color-mono-ink)] break-all">
+            {merkleRoot}
             <IconExternal
               width={13}
               height={13}
-              className="cursor-pointer text-[var(--color-slate)] transition hover:text-[var(--color-ink)]"
+              className="shrink-0 cursor-pointer text-[var(--color-slate)] transition hover:text-[var(--color-ink)]"
             />
           </div>
         </div>
 
         {/* Extrinsics feed */}
         <div className="mt-4">
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-slate)]">
-            Finalized Extrinsics
+          <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-[var(--color-slate)]">
+            <span>Finalized Extrinsics</span>
+            <span className="font-mono text-[10px] lowercase text-[var(--color-slate)]">
+              {isLive ? 'live aura-grandpa feed' : 'cached local state'}
+            </span>
           </div>
           <div className="overflow-hidden rounded-xl border border-[var(--color-hairline)]">
             <table className="w-full border-collapse text-left">
@@ -88,23 +150,23 @@ export default function AuditDrawer({
                   <th className="px-3 py-2 font-medium">Time</th>
                   <th className="px-3 py-2 font-medium">τ_audit</th>
                   <th className="px-3 py-2 font-medium">Tool URI</th>
-                  <th className="px-3 py-2 font-medium">ZK-Proof</th>
+                  <th className="px-3 py-2 font-medium">ZK-Proof / Tx</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody className="font-mono text-[11.5px] text-[var(--color-mono-ink)]">
-                {EXTRINSICS.map((e) => (
+                {extrinsicsToRender.map((e, idx) => (
                   <tr
-                    key={e.ts}
+                    key={idx}
                     className="border-t border-[var(--color-hairline)] transition hover:bg-[var(--color-surface)]"
                   >
                     <td className="px-3 py-2.5 text-[var(--color-slate)]">{e.ts}</td>
                     <td className="px-3 py-2.5">{e.intent}</td>
                     <td className="px-3 py-2.5 text-[var(--color-indigo)]">{e.tool}</td>
-                    <td className="px-3 py-2.5">{e.proof}</td>
+                    <td className="px-3 py-2.5 text-[var(--color-slate)]">{e.proof}</td>
                     <td className="px-3 py-2.5">
-                      <span className="inline-flex items-center gap-1 text-[var(--color-emerald)]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-emerald)]" />
+                      <span className={`inline-flex items-center gap-1 ${e.status === 'Sealed' ? 'text-rose-600' : 'text-[var(--color-emerald)]'}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${e.status === 'Sealed' ? 'bg-rose-500' : 'bg-[var(--color-emerald)]'}`} />
                         {e.status}
                       </span>
                     </td>
@@ -133,3 +195,4 @@ export default function AuditDrawer({
     </Drawer>
   )
 }
+

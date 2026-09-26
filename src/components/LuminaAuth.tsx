@@ -156,7 +156,7 @@ export default function LuminaAuth({
         /* no-op */
       }
 
-      const file = buildKeyFile(credentials.userId, enc.ciphertext, enc.iv, enc.salt)
+      const file = await buildKeyFile(credentials.userId, enc.ciphertext, enc.iv, enc.salt)
       setKeyFile(file)
       downloadKeyFile(file)
       setMode('setup-done')

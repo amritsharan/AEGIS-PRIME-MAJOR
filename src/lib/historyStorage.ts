@@ -242,3 +242,58 @@ export function clearAllSessions(): void {
     /* noop */
   }
 }
+
+export const ZENITH_MESH_URL = 'http://localhost:9944'
+
+export async function saveSessionToBlockchain(
+  userId: string,
+  session: ConversationSession
+): Promise<any> {
+  if (!userId) return null
+  try {
+    const res = await fetch(`${ZENITH_MESH_URL}/ledger/user/history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        sessionId: session.id,
+        sessionTitle: session.title,
+        encryptedPayload: JSON.stringify(session.messages),
+        messages: session.messages,
+      }),
+    })
+    if (res.ok) {
+      return await res.json()
+    }
+  } catch (err) {
+    console.warn('Zenith-Mesh blockchain session sync notice:', err)
+  }
+  return null
+}
+
+export async function loadSessionFromBlockchain(
+  userId: string
+): Promise<ConversationSession | null> {
+  if (!userId) return null
+  try {
+    const res = await fetch(`${ZENITH_MESH_URL}/ledger/user/${encodeURIComponent(userId)}/history`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.status !== 'NOT_FOUND' && Array.isArray(data.messages) && data.messages.length > 0) {
+        return {
+          id: data.sessionId || `session-blk-${data.blockHeight || 'poa'}`,
+          title: data.sessionTitle || 'Blockchain Restored Session',
+          createdAt: new Date((data.timestamp || Date.now() / 1000) * 1000).toISOString(),
+          updatedAt: new Date().toISOString(),
+          mode: 'standard',
+          modelA: 'synapse-free',
+          messages: data.messages,
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load user session from blockchain:', err)
+  }
+  return null
+}
+

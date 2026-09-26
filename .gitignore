@@ -24,3 +24,5 @@ logs/
 __pycache__/
 *.py[cod]
 *$py.class
+ref_repo/
+aegis_prime_major/
