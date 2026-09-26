@@ -553,18 +553,40 @@ function App({ onBack } = {}) {
   const isSecured = attackResult ? !attackResult.success : true;
 
   return (
-    <div className={`cypher-shield-root min-h-screen text-slate-100 ${theme === 'light' ? 'light-theme' : ''}`}>
+    <div className={`cypher-shield-root min-h-screen ${theme === 'light' ? 'light-theme' : ''}`}>
       <div className="app-container">
       {onBack && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.5rem', background: 'rgba(5, 10, 20, 0.85)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0, 242, 254, 0.2)', marginBottom: '1rem', borderRadius: '12px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.75rem 1.5rem',
+          background: theme === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(5, 10, 20, 0.85)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.2)' : '1px solid rgba(0, 242, 254, 0.2)',
+          marginBottom: '1rem',
+          borderRadius: '12px'
+        }}>
           <button
             onClick={onBack}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.9rem', background: 'rgba(0, 242, 254, 0.1)', color: 'var(--neon-blue)', border: '1px solid rgba(0, 242, 254, 0.4)', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.4rem 0.9rem',
+              background: theme === 'light' ? 'rgba(2, 132, 199, 0.1)' : 'rgba(0, 242, 254, 0.1)',
+              color: 'var(--neon-blue)',
+              border: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.4)' : '1px solid rgba(0, 242, 254, 0.4)',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
           >
             ← Back to Synapse OS
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', fontFamily: 'monospace', color: '#00f2fe' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00ff87', display: 'inline-block' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--neon-blue)' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--neon-green)', display: 'inline-block' }} />
             LAYER 3: NIST ML-KEM-768 ACTIVE (:9200)
           </div>
         </div>
