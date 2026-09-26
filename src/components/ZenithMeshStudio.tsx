@@ -893,7 +893,7 @@ verifyZenithMeshBlockchain(blockchainData);
             AEGIS-PRIME LAYER 4 ARCHITECTURAL SPECIFICATION
           </span>
         </div>
-        <h1 className="text-gradient" style={{ fontSize: '2.8rem', marginBottom: '0.5rem' }}>
+        <h1 className="text-gradient" style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
           ZENITH-MESH
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '800px', margin: '0 auto' }}>
