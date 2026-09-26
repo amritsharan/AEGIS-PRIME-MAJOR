@@ -560,34 +560,72 @@ function App({ onBack } = {}) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.75rem 1.5rem',
-          background: theme === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(5, 10, 20, 0.85)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.2)' : '1px solid rgba(0, 242, 254, 0.2)',
-          marginBottom: '1rem',
-          borderRadius: '12px'
+          padding: '0.85rem 1.75rem',
+          background: theme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(10, 15, 29, 0.85)',
+          backdropFilter: 'blur(16px)',
+          border: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.25)' : '1px solid rgba(0, 242, 254, 0.25)',
+          borderRadius: '16px',
+          boxShadow: theme === 'light' ? '0 8px 30px rgba(0, 0, 0, 0.06)' : '0 8px 32px rgba(0, 0, 0, 0.4)',
+          marginBottom: '2rem',
+          marginTop: '0.5rem',
+          position: 'sticky',
+          top: '0.75rem',
+          zIndex: 40
         }}>
-          <button
-            onClick={onBack}
-            style={{
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              onClick={onBack}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                padding: '0.5rem 1.1rem',
+                background: theme === 'light' ? 'rgba(2, 132, 199, 0.12)' : 'rgba(0, 242, 254, 0.12)',
+                color: 'var(--neon-blue)',
+                border: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.4)' : '1px solid rgba(0, 242, 254, 0.4)',
+                borderRadius: '12px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                boxShadow: theme === 'light' ? '0 0 12px rgba(2, 132, 199, 0.15)' : '0 0 15px rgba(0, 242, 254, 0.15)'
+              }}
+            >
+              <span style={{ fontSize: '1rem' }}>←</span>
+              <span>Back to Synapse OS</span>
+            </button>
+            <div style={{ width: '1px', height: '20px', background: theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)' }} />
+            <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              padding: '0.4rem 0.9rem',
-              background: theme === 'light' ? 'rgba(2, 132, 199, 0.1)' : 'rgba(0, 242, 254, 0.1)',
-              color: 'var(--neon-blue)',
-              border: theme === 'light' ? '1px solid rgba(2, 132, 199, 0.4)' : '1px solid rgba(0, 242, 254, 0.4)',
+              padding: '0.35rem 0.75rem',
               borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            ← Back to Synapse OS
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--neon-blue)' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--neon-green)', display: 'inline-block' }} />
-            LAYER 3: NIST ML-KEM-768 ACTIVE (:9200)
+              background: theme === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)',
+              fontSize: '0.78rem',
+              fontFamily: 'monospace',
+              color: 'var(--text-secondary)'
+            }}>
+              <span style={{ fontWeight: 700, color: 'var(--neon-blue)' }}>LAYER 3:</span>
+              <span>NIST ML-KEM-768 ACTIVE</span>
+            </div>
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.4rem 0.9rem',
+            borderRadius: '9999px',
+            background: 'rgba(0, 255, 135, 0.08)',
+            border: '1px solid rgba(0, 255, 135, 0.3)',
+            fontSize: '0.78rem',
+            fontFamily: 'monospace',
+            color: 'var(--neon-green)',
+            fontWeight: 600
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--neon-green)', display: 'inline-block', boxShadow: '0 0 8px var(--neon-green)' }} />
+            ONLINE (:9200)
           </div>
         </div>
       )}

@@ -861,22 +861,27 @@ verifyZenithMeshBlockchain(blockchainData);
   return (
     <div className="zenith-mesh-root min-h-screen text-slate-100 pb-20 relative">
       {onBack && (
-        <div className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 bg-slate-950/80 backdrop-blur-md border-b border-cyan-500/20 shadow-lg mb-6">
+        <div className="sticky top-3 z-40 mx-4 sm:mx-8 mb-6 mt-3 px-5 py-3 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-cyan-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.36)] flex items-center justify-between transition-all">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-950/60 text-cyan-400 hover:bg-cyan-900/60 border border-cyan-500/30 text-xs font-semibold tracking-wide transition-all shadow-sm cursor-pointer"
+              className="group flex items-center gap-2.5 px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 border border-cyan-500/40 hover:border-cyan-400 text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:-translate-x-0.5 cursor-pointer"
             >
-              ← Back to Synapse OS
+              <span className="text-base transition-transform group-hover:-translate-x-1">←</span>
+              <span>Back to Synapse OS</span>
             </button>
-            <div className="h-4 w-[1px] bg-slate-700" />
-            <span className="text-xs font-mono font-medium text-emerald-400">
-              LAYER 4: SUBSTRATE PROOF-OF-AGENCY NODE (:9944)
-            </span>
+            <div className="h-5 w-[1px] bg-slate-700/80 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs font-mono text-cyan-300">
+              <span className="font-semibold text-emerald-400">LAYER 4:</span>
+              <span>SUBSTRATE PROOF-OF-AGENCY NODE (:9944)</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>SUBSTRATE POA ACTIVE</span>
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-xs font-mono text-emerald-400 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold tracking-wider">SUBSTRATE POA ACTIVE</span>
           </div>
         </div>
       )}

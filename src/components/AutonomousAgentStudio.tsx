@@ -260,33 +260,32 @@ export default function AutonomousAgentStudio({ onBack }: Props) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-purple-500 selection:text-white">
       {/* Top Navigation & Status Bar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-slate-900/90 backdrop-blur-md border-b border-purple-500/20 shadow-lg">
+      <div className="sticky top-3 z-30 mx-4 sm:mx-8 mb-6 mt-3 px-5 py-3 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-purple-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.36)] flex items-center justify-between transition-all">
         <div className="flex items-center gap-4">
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-950/60 text-purple-300 hover:bg-purple-900/60 border border-purple-500/30 text-xs font-semibold tracking-wide transition-all shadow-sm cursor-pointer"
+              className="group flex items-center gap-2.5 px-4 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 border border-purple-500/40 hover:border-purple-400 text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:-translate-x-0.5 cursor-pointer"
             >
-              ← Back to Synapse OS
+              <span className="text-base transition-transform group-hover:-translate-x-1">←</span>
+              <span>Back to Synapse OS</span>
             </button>
           )}
-          <div className="h-4 w-[1px] bg-slate-700" />
-          <div className="flex items-center gap-2">
-            <Bot size={18} className="text-purple-400" />
-            <span className="text-xs font-mono font-semibold tracking-wider text-purple-300">
-              QUANTUMSHIELD AI — AUTONOMOUS SECURITY PLATFORM
-            </span>
+          <div className="h-5 w-[1px] bg-slate-700/80 hidden sm:block" />
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs font-mono text-purple-300">
+            <Bot size={16} className="text-purple-400" />
+            <span className="font-semibold tracking-wider">QUANTUMSHIELD AI — AUTONOMOUS SECURITY PLATFORM</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 shadow-sm">
             <span className={`inline-block w-2 h-2 rounded-full ${backendOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
-            <span className="text-slate-300">
+            <span className="text-slate-300 font-semibold">
               {backendOnline ? 'BACKEND PORT 8000 LIVE' : 'BACKEND RECONNECTING'}
             </span>
           </div>
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-500/30 text-purple-300">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/40 border border-purple-500/30 text-purple-300">
             <Atom size={12} className="animate-spin text-purple-400" />
             <span>QISKIT SIMULATOR READY</span>
           </div>
