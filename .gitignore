@@ -26,3 +26,6 @@ __pycache__/
 *$py.class
 ref_repo/
 aegis_prime_major/
+*.db
+.vscode/
+
