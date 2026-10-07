@@ -33,3 +33,11 @@ This is the canonical project structure. Start with task-relevant files below. O
 This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin configured in `vite.config.ts`. `src/index.css` imports Tailwind with `@import 'tailwindcss';`. Use Tailwind utility classes directly in JSX and put global CSS or Tailwind v4 theme customization in `src/index.css`. This scaffold does not need a Tailwind config file or PostCSS config.
 
 `src/main.tsx` imports `src/index.css`, so global font wiring belongs in `src/index.css`. Keep CSS `@import` statements first, then add any `@font-face` rules and font-family defaults there.
+
+## Git Remotes & Push Protocol
+
+- **Main Account / Primary Remote:** `main` &rarr; `https://github.com/amritsharan/AEGIS-PRIME-MAJOR.git`
+- **Backup Account / Secondary Remote:** `backup` &rarr; `git@github.com:1si24ci401-spec/lumina-synapse.git`
+
+**Rule:** Whenever the user asks to push to git without specifying the target, always ask whether to push to the **Main Account**, the **Backup Account**, or **Both**.
+
